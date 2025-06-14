@@ -1,133 +1,274 @@
-import { createClient } from '@/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
+import { createClient } from "@/lib/supabase/client"
+import type { User, UserRole } from "@/lib/supabase/database.types"
 
 export interface AuthUser {
   id: string
   email: string
-  role: string
-  nom?: string
-  prenom?: string
+  role: UserRole
+  name: string
+  phone?: string
+  address?: string
+  department?: string
+  position?: string
+  avatar_url?: string
+  is_active: boolean
 }
 
-const supabase = createClient()
+class AuthService {
+  private supabase = createClient()
 
-export const authService = {
-  async signIn(email: string, password: string) {
+  async signIn(
+    email: string,
+    password: string,
+  ): Promise<{
+    user: AuthUser | null
+    error: Error | null
+  }> {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await this.supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       })
 
       if (error) throw error
-      return { user: data.user, error: null }
-    } catch (error) {
-      console.error('Sign in error:', error)
-      return { user: null, error }
-    }
-  },
 
-  async signUp(email: string, password: string, userData: any) {
+      if (!data.user) {
+        throw new Error("No user returned from authentication")
+      }
+
+      // Récupérer le profil utilisateur
+      const profile = await this.getUserProfile(data.user.id)
+      if (!profile) {
+        throw new Error("User profile not found")
+      }
+
+      // Mettre à jour la dernière connexion
+      await this.updateLastLogin(data.user.id)
+
+      return { user: profile, error: null }
+    } catch (error) {
+      console.error("Sign in error:", error)
+      return {
+        user: null,
+        error: error instanceof Error ? error : new Error("Unknown error"),
+      }
+    }
+  }
+
+  async signUp(
+    email: string,
+    password: string,
+    userData: {
+      name: string
+      role: UserRole
+      phone?: string
+      address?: string
+      department?: string
+      position?: string
+    },
+  ): Promise<{
+    user: AuthUser | null
+    error: Error | null
+  }> {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await this.supabase.auth.signUp({
         email,
         password,
         options: {
-          data: userData
-        }
+          data: {
+            name: userData.name,
+            role: userData.role,
+          },
+        },
       })
 
       if (error) throw error
 
-      // Create user profile
-      if (data.user) {
-        const { error: insertError } = await supabase
-          .from('users')
-          .insert([{
-            id: data.user.id,
-            email: data.user.email,
-            ...userData
-          }])
-
-        if (insertError) {
-          console.error('Error creating user profile:', insertError)
-        }
+      if (!data.user) {
+        throw new Error("No user returned from registration")
       }
 
-      return { user: data.user, error: null }
-    } catch (error) {
-      console.error('Sign up error:', error)
-      return { user: null, error }
-    }
-  },
+      // Créer le profil utilisateur
+      const { error: insertError } = await this.supabase.from("users").insert([
+        {
+          id: data.user.id,
+          email: data.user.email!,
+          name: userData.name,
+          role: userData.role,
+          phone: userData.phone || null,
+          address: userData.address || null,
+          department: userData.department || null,
+          position: userData.position || null,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ])
 
-  async signOut() {
+      if (insertError) {
+        console.error("Error creating user profile:", insertError)
+        throw new Error("Failed to create user profile")
+      }
+
+      const profile = await this.getUserProfile(data.user.id)
+      return { user: profile, error: null }
+    } catch (error) {
+      console.error("Sign up error:", error)
+      return {
+        user: null,
+        error: error instanceof Error ? error : new Error("Unknown error"),
+      }
+    }
+  }
+
+  async signOut(): Promise<{ error: Error | null }> {
     try {
-      const { error } = await supabase.auth.signOut()
+      const { error } = await this.supabase.auth.signOut()
       if (error) throw error
       return { error: null }
     } catch (error) {
-      console.error('Sign out error:', error)
-      return { error }
+      console.error("Sign out error:", error)
+      return {
+        error: error instanceof Error ? error : new Error("Unknown error"),
+      }
     }
-  },
+  }
 
   async getCurrentUser(): Promise<AuthUser | null> {
     try {
-      const { data: { user }, error } = await supabase.auth.getUser()
+      const {
+        data: { user },
+        error,
+      } = await this.supabase.auth.getUser()
       if (error) throw error
-      
+
       if (!user) return null
-      
-      const { data: profile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-      
-      if (!profile) return null
-      
-      return {
-        id: user.id,
-        email: user.email || '',
-        role: profile.role,
-        nom: profile.nom,
-        prenom: profile.prenom
-      }
+
+      return await this.getUserProfile(user.id)
     } catch (error) {
-      console.error('Get current user error:', error)
+      console.error("Get current user error:", error)
       return null
     }
-  },
+  }
 
-  async getUserProfile(userId: string) {
+  async getUserProfile(userId: string): Promise<AuthUser | null> {
     try {
-      const { data: profile, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single()
+      const { data: profile, error } = await this.supabase.from("users").select("*").eq("id", userId).single()
 
-      return { profile, error }
+      if (error) {
+        if (error.code === "PGRST116") return null
+        throw error
+      }
+
+      return {
+        id: profile.id,
+        email: profile.email,
+        role: profile.role,
+        name: profile.name,
+        phone: profile.phone,
+        address: profile.address,
+        department: profile.department,
+        position: profile.position,
+        avatar_url: profile.avatar_url,
+        is_active: profile.is_active,
+      }
     } catch (error) {
-      console.error('Get user profile error:', error)
-      return { profile: null, error }
+      console.error("Get user profile error:", error)
+      return null
     }
-  },
+  }
 
-  async updateUserProfile(userId: string, updates: any) {
+  async updateUserProfile(
+    userId: string,
+    updates: Partial<User>,
+  ): Promise<{
+    data: AuthUser | null
+    error: Error | null
+  }> {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .update(updates)
-        .eq('id', userId)
+      const { data, error } = await this.supabase
+        .from("users")
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId)
         .select()
         .single()
 
-      return { data, error }
+      if (error) throw error
+
+      const profile: AuthUser = {
+        id: data.id,
+        email: data.email,
+        role: data.role,
+        name: data.name,
+        phone: data.phone,
+        address: data.address,
+        department: data.department,
+        position: data.position,
+        avatar_url: data.avatar_url,
+        is_active: data.is_active,
+      }
+
+      return { data: profile, error: null }
     } catch (error) {
-      console.error('Update user profile error:', error)
-      return { data: null, error }
+      console.error("Update user profile error:", error)
+      return {
+        data: null,
+        error: error instanceof Error ? error : new Error("Unknown error"),
+      }
+    }
+  }
+
+  async updateLastLogin(userId: string): Promise<void> {
+    try {
+      const { error } = await this.supabase
+        .from("users")
+        .update({
+          last_login: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId)
+
+      if (error) throw error
+    } catch (error) {
+      console.error("Update last login error:", error)
+    }
+  }
+
+  async resetPassword(email: string): Promise<{ error: Error | null }> {
+    try {
+      const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      })
+
+      if (error) throw error
+      return { error: null }
+    } catch (error) {
+      console.error("Reset password error:", error)
+      return {
+        error: error instanceof Error ? error : new Error("Unknown error"),
+      }
+    }
+  }
+
+  async updatePassword(newPassword: string): Promise<{ error: Error | null }> {
+    try {
+      const { error } = await this.supabase.auth.updateUser({
+        password: newPassword,
+      })
+
+      if (error) throw error
+      return { error: null }
+    } catch (error) {
+      console.error("Update password error:", error)
+      return {
+        error: error instanceof Error ? error : new Error("Unknown error"),
+      }
     }
   }
 }
+
+// Export de l'instance du service
+export const authService = new AuthService()

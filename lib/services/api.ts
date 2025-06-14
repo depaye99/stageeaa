@@ -1,154 +1,98 @@
-import { stagiaireService } from "./stagiaires-service"
-import { demandesService } from "./demandes-service"
-import { documentsService } from "./documents-service"
-import { evaluationsService } from "./evaluations-service"
-import { notificationsService } from "./notifications-service"
-import { usersService } from "./users-service"
-import { templatesService } from "./templates-service"
+import { createClient } from "@/lib/supabase/client"
+import type {
+  User,
+  Stagiaire,
+  Demande,
+  Document,
+  Evaluation,
+  ApiResponse,
+  PaginatedResponse,
+} from "@/lib/supabase/database.types"
 
-// Export des services pour l'API
-export const stagiairesApiService = stagiaireService
-export const demandesApiService = demandesService
-export const documentsApiService = documentsService
-export const evaluationsApiService = evaluationsService
-export const notificationsApiService = notificationsService
-export const usersApiService = usersService
-export const templatesApiService = templatesService
+const supabase = createClient()
 
-// Types pour l'API
-export interface ApiResponse<T = any> {
-  success: boolean
-  data?: T
-  error?: string
-  message?: string
-}
+// Types pour les exports
+export type { User, Stagiaire, Demande, Document, Evaluation }
 
-export interface PaginatedResponse<T = any> extends ApiResponse<T> {
-  pagination?: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
-}
+// API générique
+class ApiService {
+  protected supabase = createClient()
 
-// Utilitaires pour les réponses API
-export const createSuccessResponse = <T>(data: T, message?: string): ApiResponse<T> => ({\
-  success: true,
-  data,
-  message
-})
+  protected async handleResponse<T>(promise: Promise<{ data: T | null; error: any }>): Promise<ApiResponse<T>> {
+    try {
+      const { data, error } = await promise
 
-export const createErrorResponse = (error: string): ApiResponse => ({\
-  success: false,
-  error
-})
-
-export const createPaginatedResponse = <T>(
-  data: T[],
-  page: number,
-  limit: number,
-  total: number\
-): PaginatedResponse<T[]> => ({\
-  success: true,
-  data,
-  pagination: {
-    page,
-    limit,
-    total,\
-    totalPages: Math.ceil(total / limit)
-  }
-})
-
-// Configuration API
-export const API_CONFIG = {\
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || '',
-  TIMEOUT: 30000,
-  RETRY_ATTEMPTS: 3
-}
-
-// Client API générique
-export class ApiClient {\
-  private baseUrl: string
-  private timeout: number
-
-  constructor(baseUrl: string = API_CONFIG.BASE_URL, timeout: number = API_CONFIG.TIMEOUT) {
-    this.baseUrl = baseUrl\
-    this.timeout = timeout
-  }
-\
-  async request<T = any>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {\
-    const url = `${this.baseUrl}${endpoint}`
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout)
-
-    try {\
-      const response = await fetch(url, {
-        ...options,\
-        signal: controller.signal,
-        headers: {
-          'Content-Type\': \'application/json',
-          ...options.headers
+      if (error) {
+        console.error("API Error:", error)
+        return {
+          success: false,
+          error: error.message || "Une erreur est survenue",
+          data: null,
         }
-      })
-
-      clearTimeout(timeoutId)
-
-      if (!response.ok) {\
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || `HTTP ${response.status}`)
       }
 
-      const data = await response.json()
-      return data
+      return {
+        success: true,
+        data: data as T,
+        error: null,
+      }
     } catch (error) {
-      clearTimeout(timeoutId)
-      \
-      if (error instanceof Error) {\
-        if (error.name === 'AbortError') {\
-          throw new Error('Request timeout')
-        }
-        throw error
+      console.error("Unexpected error:", error)
+      return {
+        success: false,
+        error: "Une erreur inattendue est survenue",
+        data: null,
       }
-      
-      throw new Error('Unknown error occurred')
     }
   }
-\
-  async get<T = any>(endpoint: string, params?: Record<string, string>): Promise<ApiResponse<T>> {\
-    const url = new URL(endpoint, this.baseUrl)
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, value)
-      })
-    }
 
-    return this.request<T>(url.pathname + url.search)
-  }
-\
-  async post<T = any>(endpoint: string, data?: any): Promise<ApiResponse<T>> {\
-    return this.request<T>(endpoint, {\
-      method: \'POST',
-      body: data ? JSON.stringify(data) : undefined
-    })
-  }
-\
-  async put<T = any>(endpoint: string, data?: any): Promise<ApiResponse<T>> {\
-    return this.request<T>(endpoint, {\
-      method: \'PUT',
-      body: data ? JSON.stringify(data) : undefined
-    })
-  }
-\
-  async delete<T = any>(endpoint: string): Promise<ApiResponse<T>> {\
-    return this.request<T>(endpoint, {
-      method: 'DELETE'
-    })
+  protected async handlePaginatedResponse<T>(
+    promise: Promise<{ data: T[] | null; error: any; count?: number }>,
+  ): Promise<PaginatedResponse<T>> {
+    try {
+      const { data, error, count } = await promise
+
+      if (error) {
+        console.error("API Error:", error)
+        return {
+          success: false,
+          error: error.message || "Une erreur est survenue",
+          data: [],
+          pagination: {
+            total: 0,
+            page: 1,
+            limit: 10,
+            totalPages: 0,
+          },
+        }
+      }
+
+      return {
+        success: true,
+        data: data as T[],
+        error: null,
+        pagination: {
+          total: count || 0,
+          page: 1,
+          limit: 10,
+          totalPages: Math.ceil((count || 0) / 10),
+        },
+      }
+    } catch (error) {
+      console.error("Unexpected error:", error)
+      return {
+        success: false,
+        error: "Une erreur inattendue est survenue",
+        data: [],
+        pagination: {
+          total: 0,
+          page: 1,
+          limit: 10,
+          totalPages: 0,
+        },
+      }
+    }
   }
 }
 
-// Instance par défaut du client API
-export const apiClient = new ApiClient()
+export const apiService = new ApiService()

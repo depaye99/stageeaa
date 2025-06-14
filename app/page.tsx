@@ -23,10 +23,11 @@ interface Stats {
   evaluations_total: number
 }
 
-export default function HomePage() {
+function Page() {
   const [user, setUser] = useState<User | null>(null)
   const [stats, setStats] = useState<Stats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [statsError, setStatsError] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -70,13 +71,36 @@ export default function HomePage() {
 
     const fetchStats = async () => {
       try {
-        const response = await fetch("/api/statistics")
-        if (response.ok) {
-          const data = await response.json()
-          setStats(data)
+        const response = await fetch("/api/statistics", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }
+
+        const contentType = response.headers.get("content-type")
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("La réponse n'est pas au format JSON")
+        }
+
+        const data = await response.json()
+        setStats(data)
+        setStatsError(null)
       } catch (error) {
         console.error("Erreur lors du chargement des statistiques:", error)
+        setStatsError(error instanceof Error ? error.message : "Erreur inconnue")
+
+        // Définir des statistiques par défaut
+        setStats({
+          stagiaires_total: 0,
+          demandes_total: 0,
+          documents_total: 0,
+          evaluations_total: 0,
+        })
       }
     }
 
@@ -212,6 +236,11 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-gray-900">Statistiques de la plateforme</h2>
+              {statsError && (
+                <p className="mt-2 text-sm text-amber-600">
+                  Données de démonstration (erreur de connexion à la base de données)
+                </p>
+              )}
             </div>
 
             <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -309,3 +338,5 @@ export default function HomePage() {
     </div>
   )
 }
+
+export default Page

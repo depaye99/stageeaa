@@ -1,8 +1,24 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-// Types maintenant définis via Supabase ou les services spécifiques
 import type { Language } from "./i18n"
-import type { User, Demande, Document, Stagiaire } from "./services/api"
+
+interface User {
+  id: string
+  email: string
+  name: string
+  role: string
+  first_name?: string
+  last_name?: string
+}
+
+interface Notification {
+  id: string
+  type: "success" | "error" | "warning" | "info"
+  title: string
+  message: string
+  timestamp: Date
+  read: boolean
+}
 
 interface AppState {
   // Theme & Language
@@ -12,8 +28,8 @@ interface AppState {
   setLanguage: (language: Language) => void
 
   // User
-  currentUser: any | null
-  setCurrentUser: (user: any | null) => void
+  currentUser: User | null
+  setCurrentUser: (user: User | null) => void
 
   // Data
   demandes: any[]
@@ -42,15 +58,6 @@ interface AppState {
   }
   setSearchQuery: (query: string) => void
   setFilters: (filters: any) => void
-}
-
-interface Notification {
-  id: string
-  type: "success" | "error" | "warning" | "info"
-  title: string
-  message: string
-  timestamp: Date
-  read: boolean
 }
 
 export const useAppStore = create<AppState>()(
