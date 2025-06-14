@@ -1,0 +1,75 @@
+Error: 
+  × Expected ident
+   ╭─[/home/runner/workspace/lib/services/stagiaires-service.ts:1:1]
+ 1 │ import { BaseService } from './base-service'
+ 2 │ import { Stagiaire, ApiResponse, Statistics, SearchFilters } from '@/lib/types'
+ 3 │ 
+ 4 │ export import { BaseService } from './base-service'
+   ·               ─
+ 5 │ import type { Stagiaire, SearchFilters, Statistics, ApiResponse } from '@/lib/types'
+ 6 │ 
+ 7 │ class StagiairesService extends BaseService {
+   ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./lib/services/stagiaires-service.ts
+./app/api/stagiaires/route.ts
+
+
+> Build failed because of webpack errors
+~/workspace$ 
+~/workspace$ npm run build
+
+> my-v0-project@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.30
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./lib/services/demandes-service.ts
+Error: 
+  × the name demandesService is defined multiple times
+     ╭─[/home/runner/workspace/lib/services/demandes-service.ts:102:1]
+ 102 │ }
+ 103 │ 
+ 104 │ // Export singleton instance
+ 105 │ export const demandesService = new DemandesService()
+     ·              ───────┬───────
+     ·                     ╰── previous definition of demandesService here
+ 106 │ export default demandesService
+ 107 │ 
+ 108 │ export const demandesService = new DemandesService()
+     ·              ───────┬───────
+     ·                     ╰── demandesService redefined here
+     ╰────
+
+Import trace for requested module:
+./lib/services/demandes-service.ts
+./app/stagiaire/demandes/page.tsx
+
+./lib/services/demandes-service.ts
+Error: 
+  × the name demandesService is defined multiple times
+     ╭─[/home/runner/workspace/lib/services/demandes-service.ts:102:1]
+ 102 │ }
+ 103 │ 
+ 104 │ // Export singleton instance
+ 105 │ export const demandesService = new DemandesService()
+     ·              ───────┬───────
+     ·                     ╰── previous definition of demandesService here
+ 106 │ export default demandesService
+ 107 │ 
+ 108 │ export const demandesService = new DemandesService()
+     ·              ───────┬───────
+     ·                     ╰── demandesService redefined here
+     ╰────
+
+Import trace for requested module:
+./lib/services/demandes-service.ts
+./app/api/demandes/route.ts

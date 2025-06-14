@@ -1,0 +1,42 @@
+Je veux que tu purifies mon projet de toutes ses erreurs, bugs et incohérences.
+
+Voici ce que tu dois faire :
+
+🔍 1. Détection d’erreurs :
+- Analyse tous les fichiers du projet (composants, pages, routes API, fichiers de configuration, etc.).
+- Identifie toutes les erreurs : de syntaxe, d'importation, de typage (TypeScript), de logique, de routage, de chargement de données, d’appel API, d'état (state), de gestion d’événements, etc.
+
+🛠️ 2. Correction automatique :
+- Corrige chaque erreur de façon fiable et durable.
+- Si une correction nécessite une dépendance ou une fonction manquante, crée-la ou suggère clairement quoi créer.
+- Utilise les bonnes pratiques React, Next.js, TypeScript (si applicable).
+
+⚠️ 3. Suppression des erreurs silencieuses :
+- Détecte les erreurs qui ne cassent pas le build mais posent problème à l’exécution (console.log d’erreurs, hooks mal utilisés, données `undefined`, etc.).
+- Remplace tout code temporaire ou inachevé par une version fonctionnelle.
+
+📦 4. Correction des appels API :
+- Vérifie que tous les appels aux API (`fetch`, `axios`, etc.) sont correctement faits (méthode, headers, body, URL, erreurs).
+- Corrige les erreurs de données simulées (mock data) en les remplaçant par des requêtes vers les bonnes routes de `/api/...`.
+
+🌐 5. Résolution des erreurs d’interface :
+- Corrige tout problème d’affichage, de logique de rendu, ou d’accessibilité.
+- Supprime les composants cassés ou inutilisés.
+
+⚙️ 6. Vérification du projet :
+- Vérifie que le projet build bien (`next build`, `npm run build`) sans erreurs.
+- Vérifie que toutes les pages se chargent bien, sans erreur JS/TS ni erreurs 500 côté API.
+
+🧽 7. Nettoyage final :
+- Supprime les imports inutilisés, les dépendances obsolètes dans `package.json`, les consoles/logs inutiles.
+- Nettoie les hooks mal placés (`useEffect`, `useState`, etc.), les fichiers morts et les composants non utilisés.
+- Uniformise les noms de fichiers, composants et fonctions.
+
+📋 8. Rapport final :
+- Donne-moi un rapport avec :
+  - ✅ Liste des erreurs trouvées
+  - 🧠 Explication de la cause de chaque erreur
+  - 🔧 Correction apportée
+  - 📌 Suggestions d’amélioration si nécessaire
+
+Mon objectif : que mon projet soit **100% propre, stable, sans erreur, sans code inutile, et prêt pour la production.**

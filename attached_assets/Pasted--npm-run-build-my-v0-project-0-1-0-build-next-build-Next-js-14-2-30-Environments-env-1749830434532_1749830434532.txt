@@ -1,0 +1,109 @@
+npm run build
+
+> my-v0-project@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.30
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (100kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled successfully
+   Skipping validation of types
+   Skipping linting
+ ✓ Collecting page data    
+   Generating static pages (9/55)  [==  ]Search API error: n [Error]: Dynamic server usage: Route /api/search couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/home/runner/workspace/.next/server/chunks/9276.js:1:37220)
+    at f (/home/runner/workspace/.next/server/chunks/6618.js:1:2492)
+    at a (/home/runner/workspace/.next/server/chunks/3958.js:1:343)
+    at u (/home/runner/workspace/.next/server/app/api/search/route.js:1:1246)
+    at /home/runner/workspace/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /home/runner/workspace/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/home/runner/workspace/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/home/runner/workspace/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/home/runner/workspace/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/home/runner/workspace/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/search couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (18/55)  [=== ]API Error for /stagiaires/stats: TypeError: Failed to parse URL from /api/stagiaires/stats
+    at new Request (node:internal/deps/undici/undici:9476:19)
+    at /home/runner/workspace/.next/server/chunks/9276.js:2:2050
+    ... 6 lines matching cause stack trace ...
+    at async e_.execute (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880)
+    at async e_.handle (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:39943) {
+  [cause]: TypeError: Invalid URL
+      at new URL (node:internal/url:806:29)
+      at new Request (node:internal/deps/undici/undici:9474:25)
+      at /home/runner/workspace/.next/server/chunks/9276.js:2:2050
+      at B (/home/runner/workspace/.next/server/chunks/9276.js:2:8941)
+      at /home/runner/workspace/.next/server/chunks/9276.js:2:11303
+      at async s.request (/home/runner/workspace/.next/server/app/api/demandes/[id]/route.js:1:1751)
+      at async s.getStagiairesStats (/home/runner/workspace/.next/server/app/api/stagiaires/stats/route.js:1:3005)
+      at async u (/home/runner/workspace/.next/server/app/api/stagiaires/stats/route.js:1:532)
+      at async /home/runner/workspace/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38411
+      at async e_.execute (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:27880) {
+    code: 'ERR_INVALID_URL',
+    input: '/api/stagiaires/stats'
+  }
+}
+Erreur lors de la récupération des statistiques: n [Error]: Dynamic server usage: Route /api/statistics couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/home/runner/workspace/.next/server/chunks/9276.js:1:37220)
+    at f (/home/runner/workspace/.next/server/chunks/6618.js:1:2492)
+    at n (/home/runner/workspace/.next/server/chunks/6618.js:1:340)
+    at p (/home/runner/workspace/.next/server/app/api/statistics/route.js:1:1253)
+    at /home/runner/workspace/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /home/runner/workspace/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/home/runner/workspace/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/home/runner/workspace/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/home/runner/workspace/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/home/runner/workspace/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  description: "Route /api/statistics couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (22/55)  [ ===]Callback error: B [Error]: Dynamic server usage: Route /api/auth/callback couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21778)
+    at Object.get (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:29465)
+    at c (/home/runner/workspace/.next/server/app/api/auth/callback/route.js:1:1249)
+    at /home/runner/workspace/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /home/runner/workspace/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/home/runner/workspace/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/home/runner/workspace/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/home/runner/workspace/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/home/runner/workspace/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /home/runner/workspace/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+  description: "Route /api/auth/callback couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (36/55)  [ ===]TypeError: sY is not a function
+    at s8 (/home/runner/workspace/.next/server/chunks/5748.js:1:7551)
+    at nj (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46252)
+    at nM (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47572)
+    at nN (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+    at nB (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+    at nD (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66681)
+    at nN (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64854)
+    at nB (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+    at nM (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+    at nN (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547) {
+  digest: '3046922544'
+}
+
+Error occurred prerendering page "/admin/templates". Read more: https://nextjs.org/docs/messages/prerender-error
+
+TypeError: sY is not a function
+    at s8 (/home/runner/workspace/.next/server/chunks/5748.js:1:7551)
+    at nj (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:46252)
+    at nM (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:47572)
+    at nN (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+    at nB (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+    at nD (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:66681)
+    at nN (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64854)
+    at nB (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:67539)
+    at nM (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:58561)
+    at nN (/home/runner/workspace/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64547)
+ ✓ Generating static pages (55/55)
+
+> Export encountered errors on following paths:
+    /admin/templates/page: /admin/templates
+~/workspace$

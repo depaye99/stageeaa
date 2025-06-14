@@ -1,0 +1,415 @@
+npm run build
+
+> my-v0-project@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.30
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./app/api/export/[type]/route.ts
+Error: 
+  x the name `NextResponse` is defined multiple times
+    ,-[/home/runner/workspace/app/api/export/[type]/route.ts:1:1]
+  1 | 
+  2 | import { NextRequest, NextResponse } from 'next/server'
+    :                       ^^^^^^|^^^^^
+    :                             `-- previous definition of `NextResponse` here
+  3 | import { stagiairesService } from '@/lib/services/stagiaires-service'
+  4 | import { demandesService } from '@/lib/services/demandes-service'
+  5 | import { documentsService } from '@/lib/services/documents-service'
+  6 | 
+  7 | export async function GET(
+  8 |   request: NextRequest,
+  9 |   { params }: { params: { type: string } }
+ 10 | ) {
+ 11 |   try {
+ 12 |     const { searchParams } = new URL(request.url)
+ 13 |     const format = searchParams.get('format') || 'csv'
+ 14 |     
+ 15 |     let data: any[] = []
+ 16 |     let filename = ''
+ 17 | 
+ 18 |     switch (params.type) {
+ 19 |       case 'stagiaires':
+ 20 |         data = await stagiairesService.getAllStagiaires()
+ 21 |         filename = 'stagiaires'
+ 22 |         break
+ 23 |       case 'demandes':
+ 24 |         data = await demandesService.getAllDemandes()
+ 25 |         filename = 'demandes'
+ 26 |         break
+ 27 |       case 'documents':
+ 28 |         data = await documentsService.getAllDocuments()
+ 29 |         filename = 'documents'
+ 30 |         break
+ 31 |       default:
+ 32 |         return NextResponse.json({ error: 'Type d\'export non supporté' }, { status: 400 })
+ 33 |     }
+ 34 | 
+ 35 |     if (format === 'csv') {
+ 36 |       const csv = convertToCSV(data)
+ 37 |       return new NextResponse(csv, {
+ 38 |         headers: {
+ 39 |           'Content-Type': 'text/csv',
+ 40 |           'Content-Disposition': `attachment; filename="${filename}.csv"`
+ 41 |         }
+ 42 |       })
+ 43 |     }
+ 44 | 
+ 45 |     return NextResponse.json(data)
+ 46 |   } catch (error: any) {
+ 47 |     return NextResponse.json({ error: error.message }, { status: 500 })
+ 48 |   }
+ 49 | }
+ 50 | 
+ 51 | function convertToCSV(data: any[]): string {
+ 52 |   if (data.length === 0) return ''
+ 53 |   
+ 54 |   const headers = Object.keys(data[0])
+ 55 |   const csvContent = [
+ 56 |     headers.join(','),
+ 57 |     ...data.map(row => 
+ 58 |       headers.map(header => {
+ 59 |         const value = row[header]
+ 60 |         return typeof value === 'string' ? `"${value}"` : value
+ 61 |       }).join(',')
+ 62 |     )
+ 63 |   ].join('\n')
+ 64 |   
+ 65 |   return csvContent
+ 66 | }
+ 67 | import { NextRequest, NextResponse } from 'next/server'
+    :                       ^^^^^^|^^^^^
+    :                             `-- `NextResponse` redefined here
+ 68 | import { stagiairesService } from '@/lib/services/stagiaires-service'
+ 69 | import { demandesService } from '@/lib/services/demandes-service'
+ 70 | import { documentsService } from '@/lib/services/documents-service'
+    `----
+
+  x the name `stagiairesService` is defined multiple times
+    ,-[/home/runner/workspace/app/api/export/[type]/route.ts:1:1]
+  1 | 
+  2 | import { NextRequest, NextResponse } from 'next/server'
+  3 | import { stagiairesService } from '@/lib/services/stagiaires-service'
+    :          ^^^^^^^^|^^^^^^^^
+    :                  `-- previous definition of `stagiairesService` here
+  4 | import { demandesService } from '@/lib/services/demandes-service'
+  5 | import { documentsService } from '@/lib/services/documents-service'
+  6 | 
+  7 | export async function GET(
+  8 |   request: NextRequest,
+  9 |   { params }: { params: { type: string } }
+ 10 | ) {
+ 11 |   try {
+ 12 |     const { searchParams } = new URL(request.url)
+ 13 |     const format = searchParams.get('format') || 'csv'
+ 14 |     
+ 15 |     let data: any[] = []
+ 16 |     let filename = ''
+ 17 | 
+ 18 |     switch (params.type) {
+ 19 |       case 'stagiaires':
+ 20 |         data = await stagiairesService.getAllStagiaires()
+ 21 |         filename = 'stagiaires'
+ 22 |         break
+ 23 |       case 'demandes':
+ 24 |         data = await demandesService.getAllDemandes()
+ 25 |         filename = 'demandes'
+ 26 |         break
+ 27 |       case 'documents':
+ 28 |         data = await documentsService.getAllDocuments()
+ 29 |         filename = 'documents'
+ 30 |         break
+ 31 |       default:
+ 32 |         return NextResponse.json({ error: 'Type d\'export non supporté' }, { status: 400 })
+ 33 |     }
+ 34 | 
+ 35 |     if (format === 'csv') {
+ 36 |       const csv = convertToCSV(data)
+ 37 |       return new NextResponse(csv, {
+ 38 |         headers: {
+ 39 |           'Content-Type': 'text/csv',
+ 40 |           'Content-Disposition': `attachment; filename="${filename}.csv"`
+ 41 |         }
+ 42 |       })
+ 43 |     }
+ 44 | 
+ 45 |     return NextResponse.json(data)
+ 46 |   } catch (error: any) {
+ 47 |     return NextResponse.json({ error: error.message }, { status: 500 })
+ 48 |   }
+ 49 | }
+ 50 | 
+ 51 | function convertToCSV(data: any[]): string {
+ 52 |   if (data.length === 0) return ''
+ 53 |   
+ 54 |   const headers = Object.keys(data[0])
+ 55 |   const csvContent = [
+ 56 |     headers.join(','),
+ 57 |     ...data.map(row => 
+ 58 |       headers.map(header => {
+ 59 |         const value = row[header]
+ 60 |         return typeof value === 'string' ? `"${value}"` : value
+ 61 |       }).join(',')
+ 62 |     )
+ 63 |   ].join('\n')
+ 64 |   
+ 65 |   return csvContent
+ 66 | }
+ 67 | import { NextRequest, NextResponse } from 'next/server'
+ 68 | import { stagiairesService } from '@/lib/services/stagiaires-service'
+    :          ^^^^^^^^|^^^^^^^^
+    :                  `-- `stagiairesService` redefined here
+ 69 | import { demandesService } from '@/lib/services/demandes-service'
+ 70 | import { documentsService } from '@/lib/services/documents-service'
+    `----
+
+  x the name `demandesService` is defined multiple times
+    ,-[/home/runner/workspace/app/api/export/[type]/route.ts:1:1]
+  1 | 
+  2 | import { NextRequest, NextResponse } from 'next/server'
+  3 | import { stagiairesService } from '@/lib/services/stagiaires-service'
+  4 | import { demandesService } from '@/lib/services/demandes-service'
+    :          ^^^^^^^|^^^^^^^
+    :                 `-- previous definition of `demandesService` here
+  5 | import { documentsService } from '@/lib/services/documents-service'
+  6 | 
+  7 | export async function GET(
+  8 |   request: NextRequest,
+  9 |   { params }: { params: { type: string } }
+ 10 | ) {
+ 11 |   try {
+ 12 |     const { searchParams } = new URL(request.url)
+ 13 |     const format = searchParams.get('format') || 'csv'
+ 14 |     
+ 15 |     let data: any[] = []
+ 16 |     let filename = ''
+ 17 | 
+ 18 |     switch (params.type) {
+ 19 |       case 'stagiaires':
+ 20 |         data = await stagiairesService.getAllStagiaires()
+ 21 |         filename = 'stagiaires'
+ 22 |         break
+ 23 |       case 'demandes':
+ 24 |         data = await demandesService.getAllDemandes()
+ 25 |         filename = 'demandes'
+ 26 |         break
+ 27 |       case 'documents':
+ 28 |         data = await documentsService.getAllDocuments()
+ 29 |         filename = 'documents'
+ 30 |         break
+ 31 |       default:
+ 32 |         return NextResponse.json({ error: 'Type d\'export non supporté' }, { status: 400 })
+ 33 |     }
+ 34 | 
+ 35 |     if (format === 'csv') {
+ 36 |       const csv = convertToCSV(data)
+ 37 |       return new NextResponse(csv, {
+ 38 |         headers: {
+ 39 |           'Content-Type': 'text/csv',
+ 40 |           'Content-Disposition': `attachment; filename="${filename}.csv"`
+ 41 |         }
+ 42 |       })
+ 43 |     }
+ 44 | 
+ 45 |     return NextResponse.json(data)
+ 46 |   } catch (error: any) {
+ 47 |     return NextResponse.json({ error: error.message }, { status: 500 })
+ 48 |   }
+ 49 | }
+ 50 | 
+ 51 | function convertToCSV(data: any[]): string {
+ 52 |   if (data.length === 0) return ''
+ 53 |   
+ 54 |   const headers = Object.keys(data[0])
+ 55 |   const csvContent = [
+ 56 |     headers.join(','),
+ 57 |     ...data.map(row => 
+ 58 |       headers.map(header => {
+ 59 |         const value = row[header]
+ 60 |         return typeof value === 'string' ? `"${value}"` : value
+ 61 |       }).join(',')
+ 62 |     )
+ 63 |   ].join('\n')
+ 64 |   
+ 65 |   return csvContent
+ 66 | }
+ 67 | import { NextRequest, NextResponse } from 'next/server'
+ 68 | import { stagiairesService } from '@/lib/services/stagiaires-service'
+ 69 | import { demandesService } from '@/lib/services/demandes-service'
+    :          ^^^^^^^|^^^^^^^
+    :                 `-- `demandesService` redefined here
+ 70 | import { documentsService } from '@/lib/services/documents-service'
+ 71 | 
+ 72 | export async function GET(
+    `----
+
+  x the name `documentsService` is defined multiple times
+    ,-[/home/runner/workspace/app/api/export/[type]/route.ts:2:1]
+  2 | import { NextRequest, NextResponse } from 'next/server'
+  3 | import { stagiairesService } from '@/lib/services/stagiaires-service'
+  4 | import { demandesService } from '@/lib/services/demandes-service'
+  5 | import { documentsService } from '@/lib/services/documents-service'
+    :          ^^^^^^^^|^^^^^^^
+    :                  `-- previous definition of `documentsService` here
+  6 | 
+  7 | export async function GET(
+  8 |   request: NextRequest,
+  9 |   { params }: { params: { type: string } }
+ 10 | ) {
+ 11 |   try {
+ 12 |     const { searchParams } = new URL(request.url)
+ 13 |     const format = searchParams.get('format') || 'csv'
+ 14 |     
+ 15 |     let data: any[] = []
+ 16 |     let filename = ''
+ 17 | 
+ 18 |     switch (params.type) {
+ 19 |       case 'stagiaires':
+ 20 |         data = await stagiairesService.getAllStagiaires()
+ 21 |         filename = 'stagiaires'
+ 22 |         break
+ 23 |       case 'demandes':
+ 24 |         data = await demandesService.getAllDemandes()
+ 25 |         filename = 'demandes'
+ 26 |         break
+ 27 |       case 'documents':
+ 28 |         data = await documentsService.getAllDocuments()
+ 29 |         filename = 'documents'
+ 30 |         break
+ 31 |       default:
+ 32 |         return NextResponse.json({ error: 'Type d\'export non supporté' }, { status: 400 })
+ 33 |     }
+ 34 | 
+ 35 |     if (format === 'csv') {
+ 36 |       const csv = convertToCSV(data)
+ 37 |       return new NextResponse(csv, {
+ 38 |         headers: {
+ 39 |           'Content-Type': 'text/csv',
+ 40 |           'Content-Disposition': `attachment; filename="${filename}.csv"`
+ 41 |         }
+ 42 |       })
+ 43 |     }
+ 44 | 
+ 45 |     return NextResponse.json(data)
+ 46 |   } catch (error: any) {
+ 47 |     return NextResponse.json({ error: error.message }, { status: 500 })
+ 48 |   }
+ 49 | }
+ 50 | 
+ 51 | function convertToCSV(data: any[]): string {
+ 52 |   if (data.length === 0) return ''
+ 53 |   
+ 54 |   const headers = Object.keys(data[0])
+ 55 |   const csvContent = [
+ 56 |     headers.join(','),
+ 57 |     ...data.map(row => 
+ 58 |       headers.map(header => {
+ 59 |         const value = row[header]
+ 60 |         return typeof value === 'string' ? `"${value}"` : value
+ 61 |       }).join(',')
+ 62 |     )
+ 63 |   ].join('\n')
+ 64 |   
+ 65 |   return csvContent
+ 66 | }
+ 67 | import { NextRequest, NextResponse } from 'next/server'
+ 68 | import { stagiairesService } from '@/lib/services/stagiaires-service'
+ 69 | import { demandesService } from '@/lib/services/demandes-service'
+ 70 | import { documentsService } from '@/lib/services/documents-service'
+    :          ^^^^^^^^|^^^^^^^
+    :                  `-- `documentsService` redefined here
+ 71 | 
+ 72 | export async function GET(
+ 73 |   request: NextRequest,
+    `----
+
+  x the name `GET` is defined multiple times
+    ,-[/home/runner/workspace/app/api/export/[type]/route.ts:4:1]
+  4 | import { demandesService } from '@/lib/services/demandes-service'
+  5 | import { documentsService } from '@/lib/services/documents-service'
+  6 | 
+  7 | export async function GET(
+    :                       ^|^
+    :                        `-- previous definition of `GET` here
+  8 |   request: NextRequest,
+  9 |   { params }: { params: { type: string } }
+ 10 | ) {
+ 11 |   try {
+ 12 |     const { searchParams } = new URL(request.url)
+ 13 |     const format = searchParams.get('format') || 'csv'
+ 14 |     
+ 15 |     let data: any[] = []
+ 16 |     let filename = ''
+ 17 | 
+ 18 |     switch (params.type) {
+ 19 |       case 'stagiaires':
+ 20 |         data = await stagiairesService.getAllStagiaires()
+ 21 |         filename = 'stagiaires'
+ 22 |         break
+ 23 |       case 'demandes':
+ 24 |         data = await demandesService.getAllDemandes()
+ 25 |         filename = 'demandes'
+ 26 |         break
+ 27 |       case 'documents':
+ 28 |         data = await documentsService.getAllDocuments()
+ 29 |         filename = 'documents'
+ 30 |         break
+ 31 |       default:
+ 32 |         return NextResponse.json({ error: 'Type d\'export non supporté' }, { status: 400 })
+ 33 |     }
+ 34 | 
+ 35 |     if (format === 'csv') {
+ 36 |       const csv = convertToCSV(data)
+ 37 |       return new NextResponse(csv, {
+ 38 |         headers: {
+ 39 |           'Content-Type': 'text/csv',
+ 40 |           'Content-Disposition': `attachment; filename="${filename}.csv"`
+ 41 |         }
+ 42 |       })
+ 43 |     }
+ 44 | 
+ 45 |     return NextResponse.json(data)
+ 46 |   } catch (error: any) {
+ 47 |     return NextResponse.json({ error: error.message }, { status: 500 })
+ 48 |   }
+ 49 | }
+ 50 | 
+ 51 | function convertToCSV(data: any[]): string {
+ 52 |   if (data.length === 0) return ''
+ 53 |   
+ 54 |   const headers = Object.keys(data[0])
+ 55 |   const csvContent = [
+ 56 |     headers.join(','),
+ 57 |     ...data.map(row => 
+ 58 |       headers.map(header => {
+ 59 |         const value = row[header]
+ 60 |         return typeof value === 'string' ? `"${value}"` : value
+ 61 |       }).join(',')
+ 62 |     )
+ 63 |   ].join('\n')
+ 64 |   
+ 65 |   return csvContent
+ 66 | }
+ 67 | import { NextRequest, NextResponse } from 'next/server'
+ 68 | import { stagiairesService } from '@/lib/services/stagiaires-service'
+ 69 | import { demandesService } from '@/lib/services/demandes-service'
+ 70 | import { documentsService } from '@/lib/services/documents-service'
+ 71 | 
+ 72 | export async function GET(
+    :                       ^|^
+    :                        `-- `GET` redefined here
+ 73 |   request: NextRequest,
+ 74 |   { params }: { params: { type: string } }
+ 75 | ) {
+    `----
+
+Import trace for requested module:
+./app/api/export/[type]/route.ts
+
+
+> Build failed because of webpack errors
+~/workspace$

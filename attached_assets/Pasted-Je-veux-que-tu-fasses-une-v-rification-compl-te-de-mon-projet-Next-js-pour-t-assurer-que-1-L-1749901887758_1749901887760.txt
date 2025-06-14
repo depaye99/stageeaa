@@ -1,0 +1,35 @@
+Je veux que tu fasses une vérification complète de mon projet Next.js pour t'assurer que :
+
+1. ✅ L'authentification fonctionne correctement :
+   - Les utilisateurs peuvent se connecter et se déconnecter sans erreur.
+   - Les erreurs d’authentification (mauvais mot de passe, email non trouvé, etc.) sont gérées proprement.
+
+2. ✅ La navigation est fonctionnelle :
+   - Après connexion, l’utilisateur est redirigé vers la page d’accueil ou son tableau de bord.
+   - Chaque page (`/admin`, `/tuteur`, `/stagiaire`, etc.) est bien protégée selon les rôles.
+
+3. ✅ La création de comptes fonctionne :
+   - Les formulaires de création de comptes stagiaires, tuteurs, etc. insèrent bien les données dans la base PostgreSQL ou Supabase (selon ce que tu utilises).
+   - Il n'y a pas d'erreur SQL ou d’échec silencieux.
+   - Chaque enregistrement contient les bons champs (email, nom, mot de passe, rôle…).
+
+4. ✅ Tous les services sont bien liés à la base de données :
+   - Les fichiers dans `/lib/services/*.ts` communiquent bien avec la base (Supabase, Prisma, etc.)
+   - Les méthodes `getAll`, `getById`, `create`, `update`, `delete` existent et fonctionnent.
+   - Aucune fonction n'appelle une méthode ou table inexistante.
+
+5. ✅ Les routes API (`/app/api/...`) sont bien reliées aux services :
+   - Les routes n’ont pas d’imports cassés.
+   - Les méthodes des services sont appelées correctement (pas d'appel à une fonction non définie).
+   - Les réponses renvoient un `200` ou `201` en cas de succès, `400`/`500` en cas d’erreur, et les erreurs sont loguées proprement.
+
+6. ✅ Tous les fichiers `.env` sont bien utilisés :
+   - Les variables d’environnement nécessaires (`DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_KEY`, etc.) sont bien lues.
+
+Tu dois :
+- Identifier toutes les parties cassées (importations, méthodes non trouvées, données mal insérées, routes API inaccessibles, etc.)
+- M’indiquer précisément ce qu’il faut corriger (dans quels fichiers, avec quelles fonctions)
+- Me dire si le build peut passer (`npm run build`)
+- Et si tout fonctionne jusqu’à la base de données
+
+Ne fais aucun changement si ce n’est pas nécessaire. Analyse seulement les points mentionnés.

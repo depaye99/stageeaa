@@ -1,0 +1,98 @@
+npm run build
+
+> my-v0-project@0.1.0 build
+> next build
+
+
+  ▲ Next.js 14.2.30
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./lib/services/demandes-service.ts
+Error: 
+  × Expected ident
+   ╭─[/home/runner/workspace/lib/services/demandes-service.ts:2:1]
+ 2 │ import { BaseService } from './base-service'
+ 3 │ import type { Demande, DemandeInsert, DemandeUpdate } from '@/lib/types'
+ 4 │ 
+ 5 │ export import { BaseService } from './base-service'
+   ·               ─
+ 6 │ import type { Demande, DemandeInsert, DemandeUpdate } from '@/lib/types'
+ 7 │ 
+ 8 │ class DemandesService extends BaseService {
+   ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./lib/services/demandes-service.ts
+./app/stagiaire/demandes/page.tsx
+
+./lib/services/stagiaires-service.ts
+Error: 
+  × Expected ident
+   ╭─[/home/runner/workspace/lib/services/stagiaires-service.ts:1:1]
+ 1 │ import { BaseService } from './base-service'
+ 2 │ import { Stagiaire, ApiResponse, Statistics, SearchFilters } from '@/lib/types'
+ 3 │ 
+ 4 │ export import { BaseService } from './base-service'
+   ·               ─
+ 5 │ import type { Stagiaire, SearchFilters, Statistics, ApiResponse } from '@/lib/types'
+ 6 │ 
+ 7 │ class StagiairesService extends BaseService {
+   ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./lib/services/stagiaires-service.ts
+./app/admin/stagiaires/page.tsx
+
+./lib/services/demandes-service.ts
+Error: 
+  × Expected ident
+   ╭─[/home/runner/workspace/lib/services/demandes-service.ts:2:1]
+ 2 │ import { BaseService } from './base-service'
+ 3 │ import type { Demande, DemandeInsert, DemandeUpdate } from '@/lib/types'
+ 4 │ 
+ 5 │ export import { BaseService } from './base-service'
+   ·               ─
+ 6 │ import type { Demande, DemandeInsert, DemandeUpdate } from '@/lib/types'
+ 7 │ 
+ 8 │ class DemandesService extends BaseService {
+   ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./lib/services/demandes-service.ts
+./app/api/demandes/route.ts
+
+./lib/services/stagiaires-service.ts
+Error: 
+  × Expected ident
+   ╭─[/home/runner/workspace/lib/services/stagiaires-service.ts:1:1]
+ 1 │ import { BaseService } from './base-service'
+ 2 │ import { Stagiaire, ApiResponse, Statistics, SearchFilters } from '@/lib/types'
+ 3 │ 
+ 4 │ export import { BaseService } from './base-service'
+   ·               ─
+ 5 │ import type { Stagiaire, SearchFilters, Statistics, ApiResponse } from '@/lib/types'
+ 6 │ 
+ 7 │ class StagiairesService extends BaseService {
+   ╰────
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./lib/services/stagiaires-service.ts
+./app/api/stagiaires/route.ts
+
+
+> Build failed because of webpack errors

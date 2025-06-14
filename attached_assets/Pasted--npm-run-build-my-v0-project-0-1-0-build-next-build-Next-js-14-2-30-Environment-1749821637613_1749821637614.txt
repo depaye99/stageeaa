@@ -1,0 +1,89 @@
+$ npm run build
+
+> my-v0-project@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.30
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings
+
+./app/admin/test-crud/page.tsx
+Attempted import error: 'api' is not exported from '@/lib/services/api' (imported as 'api').
+
+Import trace for requested module:
+./app/admin/test-crud/page.tsx
+
+./app/admin/test-crud/page.tsx
+Attempted import error: 'api' is not exported from '@/lib/services/api' (imported as 'api').
+
+Import trace for requested module:
+./app/admin/test-crud/page.tsx
+
+./app/admin/test-crud/page.tsx
+Attempted import error: 'api' is not exported from '@/lib/services/api' (imported as 'api').
+
+Import trace for requested module:
+./app/admin/test-crud/page.tsx
+
+./app/admin/test-crud/page.tsx
+Attempted import error: 'api' is not exported from '@/lib/services/api' (imported as 'api').
+
+Import trace for requested module:
+./app/admin/test-crud/page.tsx
+
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+./node_modules/@supabase/realtime-js/dist/main/index.js
+./node_modules/@supabase/supabase-js/dist/module/index.js
+./app/api/auth/register/route.ts
+
+ ⚠ Compiled with warnings
+
+./app/admin/test-crud/page.tsx
+Attempted import error: 'api' is not exported from '@/lib/services/api' (imported as 'api').
+
+Import trace for requested module:
+./app/admin/test-crud/page.tsx
+
+./app/admin/test-crud/page.tsx
+Attempted import error: 'api' is not exported from '@/lib/services/api' (imported as 'api').
+
+Import trace for requested module:
+./app/admin/test-crud/page.tsx
+
+./app/admin/test-crud/page.tsx
+Attempted import error: 'api' is not exported from '@/lib/services/api' (imported as 'api').
+
+Import trace for requested module:
+./app/admin/test-crud/page.tsx
+
+./app/admin/test-crud/page.tsx
+Attempted import error: 'api' is not exported from '@/lib/services/api' (imported as 'api').
+
+Import trace for requested module:
+./app/admin/test-crud/page.tsx
+
+ ✓ Compiled successfully
+   Linting and checking validity of types  ..Failed to compile.
+
+./app/admin/page.tsx:50:27
+Type error: Property 'getStagiairesStats' does not exist on type 'StagiairesService'.
+
+  48 |       // Charger les statistiques en parallèle
+  49 |       const [stagiaireStats, demandeStats, documentStats, demandes] = await Promise.all([
+> 50 |         stagiairesService.getStagiairesStats(),
+     |                           ^
+  51 |         demandesService.getDemandesStats(),
+  52 |         documentsService.getDocumentsStats(),
+  53 |         demandesService.getAllDemandes(),
+Next.js build worker exited with code: 1 and signal: null
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.4.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.4.2
+npm notice To update run: npm install -g npm@11.4.2
+npm notice

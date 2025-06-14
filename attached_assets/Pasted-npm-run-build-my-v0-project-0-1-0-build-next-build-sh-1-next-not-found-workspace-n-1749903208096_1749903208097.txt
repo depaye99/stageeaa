@@ -1,0 +1,165 @@
+npm run build
+
+> my-v0-project@0.1.0 build
+> next build
+
+sh: 1: next: not found
+~/workspace$ npm run build
+
+
+> my-v0-project@0.1.0 build
+> next build
+
+sh: 1: next: not found
+~/workspace$ 
+~/workspace$ npm run build
+
+> my-v0-project@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.30
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (100kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ⚠ Compiled with warnings
+
+./app/admin/stagiaires/page.tsx
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/admin/stagiaires/page.tsx
+
+./app/admin/stagiaires/page.tsx
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/admin/stagiaires/page.tsx
+
+./app/admin/stagiaires/page.tsx
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/admin/stagiaires/page.tsx
+
+./app/tuteur/evaluations/page.tsx
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/tuteur/evaluations/page.tsx
+
+./app/admin/stagiaires/page.tsx
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/admin/stagiaires/page.tsx
+
+./app/admin/stagiaires/page.tsx
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/admin/stagiaires/page.tsx
+
+./app/api/export/[type]/route.ts
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/api/export/[type]/route.ts
+
+./app/api/stagiaires/[id]/route.ts
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/api/stagiaires/[id]/route.ts
+
+./app/api/stagiaires/[id]/route.ts
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/api/stagiaires/[id]/route.ts
+
+./app/api/stagiaires/[id]/route.ts
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/api/stagiaires/[id]/route.ts
+
+./app/api/stagiaires/route.ts
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/api/stagiaires/route.ts
+
+./app/api/stagiaires/route.ts
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/api/stagiaires/route.ts
+
+./app/api/stagiaires/route.ts
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/api/stagiaires/route.ts
+
+./app/api/stagiaires/route.ts
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/api/stagiaires/route.ts
+
+./app/api/stagiaires/stats/route.ts
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/api/stagiaires/stats/route.ts
+
+   Linting and checking validity of types  .Failed to compile.
+
+./app/admin/stagiaires/page.tsx:3:10
+Type error: '"@/lib/services/stagiaires-service"' has no exported member named 'stagiairesService'. Did you mean 'stagiaireService'?
+
+  1 | "use client"
+  2 |
+> 3 | import { stagiairesService } from "@/lib/services/stagiaires-service"
+    |          ^
+  4 | import { authService } from "@/lib/services/auth-service"
+  5 | import { useRouter } from "next/navigation"
+  6 | import { useEffect, useState } from "react"
+Next.js build worker exited with code: 1 and signal: null
+~/workspace$ npm run build
+
+> my-v0-project@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.30
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings
+
+./app/tuteur/evaluations/page.tsx
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/tuteur/evaluations/page.tsx
+
+./app/api/export/[type]/route.ts
+Attempted import error: 'stagiairesService' is not exported from '@/lib/services/stagiaires-service' (imported as 'stagiairesService').
+
+Import trace for requested module:
+./app/api/export/[type]/route.ts
+
+   Linting and checking validity of types  ..Failed to compile.
+
+./app/admin/stagiaires/page.tsx:57:49
+Type error: Property 'success' does not exist on type 'ApiResponse<Stagiaire[]>'.
+
+  55 |           department: departmentFilter !== "all" ? departmentFilter : undefined,
+  56 |         })
+> 57 |         const stagiairesData = stagiairesResult.success ? stagiairesResult.data : []
+     |                                                 ^
+  58 |         setStagiaires(stagiairesData || [])
+  59 |       } catch (error) {
+  60 |         console.error("Erreur lors du chargement:", error)
+Next.js build worker exited with code: 1 and signal: null

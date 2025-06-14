@@ -1,0 +1,65 @@
+npm run build
+
+> my-v0-project@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.30
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings
+
+./components/ui/export-menu.tsx
+Attempted import error: 'exportService' is not exported from '@/lib/services/api' (imported as 'exportService').
+
+Import trace for requested module:
+./components/ui/export-menu.tsx
+./app/admin/reports/page.tsx
+
+./components/ui/export-menu.tsx
+Attempted import error: 'exportService' is not exported from '@/lib/services/api' (imported as 'exportService').
+
+Import trace for requested module:
+./components/ui/export-menu.tsx
+./app/admin/reports/page.tsx
+
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/main/RealtimeClient.js
+./node_modules/@supabase/realtime-js/dist/main/index.js
+./node_modules/@supabase/supabase-js/dist/module/index.js
+./app/api/auth/register/route.ts
+
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (100kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ⚠ Compiled with warnings
+
+./components/ui/export-menu.tsx
+Attempted import error: 'exportService' is not exported from '@/lib/services/api' (imported as 'exportService').
+
+Import trace for requested module:
+./components/ui/export-menu.tsx
+./app/admin/templates/page.tsx
+
+./components/ui/export-menu.tsx
+Attempted import error: 'exportService' is not exported from '@/lib/services/api' (imported as 'exportService').
+
+Import trace for requested module:
+./components/ui/export-menu.tsx
+./app/admin/templates/page.tsx
+
+ ✓ Compiled successfully
+   Linting and checking validity of types  ..Failed to compile.
+
+./app/admin/page.tsx:48:30
+Type error: Property 'getStagiairesStats' does not exist on type 'GenericApiService<Database, Database, Database>'.
+
+  46 |       // Charger les statistiques en parallèle
+  47 |       const [stagiaireStats, demandeStats, documentStats, demandes] = await Promise.all([
+> 48 |         stagiairesApiService.getStagiairesStats(),
+     |                              ^
+  49 |         demandesApiService.getDemandesStats(),
+  50 |         documentsApiService.getDocumentsStats(),
+  51 |         demandesApiService.getAllDemandes(),
+Next.js build worker exited with code: 1 and signal: null
