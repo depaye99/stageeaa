@@ -35,6 +35,14 @@ export default function LoginPage() {
     setError("")
 
     try {
+      // First test if Supabase is configured
+      const testResponse = await fetch("/api/test-supabase")
+      const testData = await testResponse.json()
+
+      if (!testData.success) {
+        throw new Error(`Configuration error: ${testData.error}`)
+      }
+
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -43,9 +51,14 @@ export default function LoginPage() {
         body: JSON.stringify(formData),
       })
 
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
+      }
+
       const data = await response.json()
 
-      if (!response.ok) {
+      if (!data.success) {
         throw new Error(data.error || "Erreur de connexion")
       }
 
@@ -71,6 +84,7 @@ export default function LoginPage() {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Erreur de connexion"
+      console.error("Login error:", error)
       setError(errorMessage)
       toast({
         title: "Erreur de connexion",

@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2, CheckCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface RegisterFormData {
@@ -38,6 +38,8 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+  const [requiresConfirmation, setRequiresConfirmation] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
 
@@ -45,6 +47,7 @@ export default function RegisterPage() {
     e.preventDefault()
     setIsLoading(true)
     setError("")
+    setSuccess("")
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
@@ -77,16 +80,31 @@ export default function RegisterPage() {
 
       const data = await response.json()
 
-      if (!response.ok) {
+      if (!response.ok && !data.success) {
         throw new Error(data.error || "Erreur lors de l'inscription")
       }
 
-      toast({
-        title: "Inscription réussie",
-        description: "Votre compte a été créé avec succès",
-      })
+      if (data.success) {
+        setSuccess(data.message)
 
-      router.push("/auth/login")
+        if (data.requiresConfirmation) {
+          setRequiresConfirmation(true)
+          toast({
+            title: "Inscription réussie",
+            description: "Vérifiez votre email pour confirmer votre compte",
+          })
+        } else {
+          toast({
+            title: "Inscription réussie",
+            description: "Votre compte a été créé avec succès",
+          })
+
+          // Redirect to login after successful registration
+          setTimeout(() => {
+            router.push("/auth/login")
+          }, 2000)
+        }
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'inscription"
       setError(errorMessage)
@@ -115,6 +133,35 @@ export default function RegisterPage() {
     }))
   }
 
+  if (success && requiresConfirmation) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1 text-center">
+            <div className="flex justify-center mb-4">
+              <CheckCircle className="h-12 w-12 text-green-500" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Inscription réussie !</CardTitle>
+            <CardDescription>Vérifiez votre email pour confirmer votre compte</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-sm text-gray-600">
+              Un email de confirmation a été envoyé à <strong>{formData.email}</strong>
+            </p>
+            <p className="text-sm text-gray-500">Cliquez sur le lien dans l'email pour activer votre compte.</p>
+            <div className="pt-4">
+              <Link href="/auth/login">
+                <Button variant="outline" className="w-full">
+                  Retour à la connexion
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
@@ -127,6 +174,13 @@ export default function RegisterPage() {
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {success && !requiresConfirmation && (
+              <Alert>
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>{success}</AlertDescription>
               </Alert>
             )}
 
