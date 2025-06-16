@@ -1,232 +1,134 @@
-import { createClient } from '@/lib/supabase/client'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import { BaseService } from './base-service'
+import type { Stagiaire, SearchFilters, Statistics, ApiResponse } from '@/lib/types'
 
-export class BaseService {
-  protected supabase: SupabaseClient
-
+class StagiairesService extends BaseService {
   constructor() {
-    this.supabase = createClient()
+    super()
   }
 
-  protected async getById<T>(
-    tableName: string, 
-    id: string, 
-    select: string = '*'
-  ): Promise<T | null> {
+  async getStagiaires(filters?: SearchFilters): Promise<ApiResponse<Stagiaire[]>> {
     try {
-      const { data, error } = await this.supabase
-        .from(tableName)
-        .select(select)
-        .eq('id', id)
-        .single()
-
-      if (error) {
-        console.error(`Error fetching ${tableName} by id:`, error)
-        throw new Error(`Failed to fetch ${tableName}: ${error.message}`)
-      }
-
-      return data
-    } catch (error) {
-      console.error(`Error in getById for ${tableName}:`, error)
-      throw error
-    }
-  }
-
-  protected async create<T>(tableName: string, data: any): Promise<T> {
-    try {
-      const { data: result, error } = await this.supabase
-        .from(tableName)
-        .insert(data)
-        .select()
-        .single()
-
-      if (error) {
-        console.error(`Error creating ${tableName}:`, error)
-        throw new Error(`Failed to create ${tableName}: ${error.message}`)
-      }
-
-      return result
-    } catch (error) {
-      console.error(`Error in create for ${tableName}:`, error)
-      throw error
-    }
-  }
-
-  protected async update<T>(tableName: string, id: string, updates: any): Promise<T> {
-    try {
-      const { data, error } = await this.supabase
-        .from(tableName)
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single()
-
-      if (error) {
-        console.error(`Error updating ${tableName}:`, error)
-        throw new Error(`Failed to update ${tableName}: ${error.message}`)
-      }
-
-      return data
-    } catch (error) {
-      console.error(`Error in update for ${tableName}:`, error)
-      throw error
-    }
-  }
-
-  protected async delete(tableName: string, id: string): Promise<void> {
-    try {
-      const { error } = await this.supabase
-        .from(tableName)
-        .delete()
-        .eq('id', id)
-
-      if (error) {
-        console.error(`Error deleting ${tableName}:`, error)
-        throw new Error(`Failed to delete ${tableName}: ${error.message}`)
-      }
-    } catch (error) {
-      console.error(`Error in delete for ${tableName}:`, error)
-      throw error
-    }
-  }
-
-  protected async getCount(tableName: string, filters?: Record<string, any>): Promise<number> {
-    try {
-      let query = this.supabase
-        .from(tableName)
-        .select('*', { count: 'exact', head: true })
-
+      const params = new URLSearchParams()
       if (filters) {
         Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            query = query.eq(key, value)
+          if (value !== undefined && value !== '') {
+            params.append(key, String(value))
           }
         })
       }
 
-      const { count, error } = await query
+      const queryString = params.toString()
+      const endpoint = queryString ? `/stagiaires?${queryString}` : '/stagiaires'
 
-      if (error) {
-        console.error(`Error counting ${tableName}:`, error)
-        throw new Error(`Failed to count ${tableName}: ${error.message}`)
-      }
-
-      return count || 0
-    } catch (error) {
-      console.error(`Error in getCount for ${tableName}:`, error)
-      throw error
-    }
-  }
-
-  private baseUrl: string = '/api'
-
-  // Méthodes pour les services API (alternative à Supabase direct)
-  protected async getApi<T>(endpoint: string): Promise<ApiResponse<T>> {
-    try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-      return { success: true, data, error: null }
+      return await this.getApi<Stagiaire[]>(endpoint)
     } catch (error) {
       return this.handleError(error)
     }
   }
 
-  protected async post<T>(endpoint: string, body: any): Promise<ApiResponse<T>> {
+  async getStagiaire(id: string): Promise<ApiResponse<Stagiaire>> {
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-      return { success: true, data, error: null }
+      return await this.getApi<Stagiaire>(`/stagiaires/${id}`)
     } catch (error) {
       return this.handleError(error)
     }
   }
 
-  protected async put<T>(endpoint: string, body: any): Promise<ApiResponse<T>> {
+  async createStagiaire(stagiaire: Partial<Stagiaire>): Promise<ApiResponse<Stagiaire>> {
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-      return { success: true, data, error: null }
+      return await this.post<Stagiaire>('/stagiaires', stagiaire)
     } catch (error) {
       return this.handleError(error)
     }
   }
 
-  protected async deleteApi<T>(endpoint: string): Promise<ApiResponse<T>> {
+  async updateStagiaire(id: string, stagiaire: Partial<Stagiaire>): Promise<ApiResponse<Stagiaire>> {
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-      return { success: true, data, error: null }
+      return await this.put<Stagiaire>(`/stagiaires/${id}`, stagiaire)
     } catch (error) {
       return this.handleError(error)
     }
   }
 
-  protected handleSuccess<T>(data: T, message?: string): ApiResponse<T> {
-    return {
-      success: true,
-      data,
-      message,
-      status: 200
+  async deleteStagiaire(id: string): Promise<ApiResponse<void>> {
+    try {
+      return await this.deleteApi<void>(`/stagiaires/${id}`)
+    } catch (error) {
+      return this.handleError(error)
     }
   }
 
-  protected handleError(error: any): ApiResponse {
-    console.error('Service error:', error)
-    return {
-      success: false,
-      error: error.message || 'Une erreur est survenue',
-      status: error.status || 500
+  async getStagiairesStats(): Promise<ApiResponse<Statistics>> {
+    try {
+      return await this.getApi<Statistics>('/stagiaires/stats')
+    } catch (error) {
+      return this.handleError(error)
+    }
+  }
+
+  async searchStagiaires(query: string, filters?: Record<string, any>): Promise<ApiResponse<Stagiaire[]>> {
+    try {
+      const params = new URLSearchParams({ q: query })
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            params.append(key, String(value))
+          }
+        })
+      }
+      return await this.getApi<Stagiaire[]>(`/stagiaires/search?${params.toString()}`)
+    } catch (error) {
+      return this.handleError(error)
+    }
+  }
+
+  async getAll(filters?: SearchFilters): Promise<Stagiaire[]> {
+    try {
+      const result = await this.getStagiaires(filters)
+      return result.success ? result.data || [] : []
+    } catch (error) {
+      console.error('Error in getAll:', error)
+      return []
+    }
+  }
+
+  async getAllStagiaires(): Promise<Stagiaire[]> {
+    return this.getAll()
+  }
+
+  async getStagiairesByTuteur(tuteurId: string): Promise<Stagiaire[]> {
+    try {
+      const result = await this.getStagiaires({ tuteurId })
+      return result.success ? result.data || [] : []
+    } catch (error) {
+      console.error('Error in getStagiairesByTuteur:', error)
+      return []
+    }
+  }
+
+  async create(stagiaire: Partial<Stagiaire>): Promise<Stagiaire | null> {
+    try {
+      const result = await this.createStagiaire(stagiaire)
+      return result.success ? result.data || null : null
+    } catch (error) {
+      console.error('Error in create:', error)
+      return null
+    }
+  }
+
+  async delete(id: string): Promise<boolean> {
+    try {
+      const result = await this.deleteStagiaire(id)
+      return result.success
+    } catch (error) {
+      console.error('Error in delete:', error)
+      return false
     }
   }
 }
 
-// Types nécessaires
-export interface ApiResponse<T> {
-  success: boolean
-  data: T | null
-  error: string | null
-}
-
+// Export singleton instance
+export const stagiaireService = new StagiairesService()
+export const stagiairesService = stagiaireService // Named export for compatibility
+export { BaseService }
 export default BaseService

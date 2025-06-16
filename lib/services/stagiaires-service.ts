@@ -1,4 +1,3 @@
-
 import BaseService from './base-service'
 import type { Stagiaire, SearchFilters, Statistics, ApiResponse } from '@/lib/types'
 
@@ -21,7 +20,7 @@ class StagiairesService extends BaseService {
       const queryString = params.toString()
       const endpoint = queryString ? `/stagiaires?${queryString}` : '/stagiaires'
 
-      return await this.get<Stagiaire[]>(endpoint)
+      return await this.getApi<Stagiaire[]>(endpoint)
     } catch (error) {
       return this.handleError(error)
     }
@@ -29,7 +28,7 @@ class StagiairesService extends BaseService {
 
   async getStagiaire(id: string): Promise<ApiResponse<Stagiaire>> {
     try {
-      return await this.get<Stagiaire>(`/stagiaires/${id}`)
+      return await this.getApi<Stagiaire>(`/stagiaires/${id}`)
     } catch (error) {
       return this.handleError(error)
     }
@@ -53,7 +52,7 @@ class StagiairesService extends BaseService {
 
   async deleteStagiaire(id: string): Promise<ApiResponse<void>> {
     try {
-      return await this.delete<void>(`/stagiaires/${id}`)
+      return await this.deleteApi<void>(`/stagiaires/${id}`)
     } catch (error) {
       return this.handleError(error)
     }
@@ -61,7 +60,7 @@ class StagiairesService extends BaseService {
 
   async getStagiairesStats(): Promise<ApiResponse<Statistics>> {
     try {
-      return await this.get<Statistics>('/stagiaires/stats')
+      return await this.getApi<Statistics>('/stagiaires/stats')
     } catch (error) {
       return this.handleError(error)
     }
@@ -77,7 +76,7 @@ class StagiairesService extends BaseService {
           }
         })
       }
-      return await this.get<Stagiaire[]>(`/search?${params.toString()}`)
+      return await this.getApi<Stagiaire[]>(`/stagiaires/search?${params.toString()}`)
     } catch (error) {
       return this.handleError(error)
     }
@@ -130,4 +129,5 @@ class StagiairesService extends BaseService {
 
 // Export singleton instance
 export const stagiaireService = new StagiairesService()
+export const stagiairesService = stagiaireService // Named export for compatibility
 export default stagiaireService

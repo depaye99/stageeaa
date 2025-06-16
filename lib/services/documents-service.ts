@@ -1,4 +1,3 @@
-
 import { BaseService } from './base-service'
 import type { Document, DocumentInsert, DocumentUpdate } from '@/lib/types'
 

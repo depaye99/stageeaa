@@ -1,4 +1,3 @@
-
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from "../supabase/database.types"
 import type { User, UserInsert, UserUpdate } from '@/lib/types'
