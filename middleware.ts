@@ -75,10 +75,16 @@ export async function middleware(request: NextRequest) {
     // Rafraîchir la session si nécessaire
     const {
       data: { user },
+      error: userError,
     } = await supabase.auth.getUser()
+
+    if (userError) {
+      console.warn("Middleware user error:", userError)
+    }
 
     // Si pas d'utilisateur et route privée, rediriger vers login
     if (!user && !isPublicRoute) {
+      console.log("No user found, redirecting to login")
       const loginUrl = new URL("/auth/login", request.url)
       loginUrl.searchParams.set("redirectTo", request.nextUrl.pathname)
       return NextResponse.redirect(loginUrl)
@@ -86,7 +92,17 @@ export async function middleware(request: NextRequest) {
 
     // Si utilisateur connecté et sur page de login, rediriger vers dashboard
     if (user && (request.nextUrl.pathname === "/auth/login" || request.nextUrl.pathname === "/auth/register")) {
-      const userRole = user.user_metadata?.role || "stagiaire"
+      // Récupérer le rôle depuis la base de données plutôt que des métadonnées
+      let userRole = "stagiaire"
+      try {
+        const { data: userData } = await supabase.from("users").select("role").eq("id", user.id).single()
+        userRole = userData?.role || user.user_metadata?.role || "stagiaire"
+      } catch (error) {
+        console.warn("Could not fetch user role from database:", error)
+        userRole = user.user_metadata?.role || "stagiaire"
+      }
+
+      console.log("User already logged in, redirecting to dashboard:", userRole)
       const dashboardRoute =
         userRole === "admin" ? "/admin" : userRole === "rh" ? "/rh" : userRole === "tuteur" ? "/tuteur" : "/stagiaire"
       return NextResponse.redirect(new URL(dashboardRoute, request.url))

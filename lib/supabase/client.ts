@@ -1,8 +1,14 @@
-import { createClient as supabaseCreateClient } from "@supabase/supabase-js"
+import { createBrowserClient } from "@supabase/ssr"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+let supabaseClient: ReturnType<typeof createBrowserClient> | null = null
 
-export const createClient = () => {
-  return supabaseCreateClient(supabaseUrl, supabaseAnonKey)
+export function createClient() {
+  // Utiliser un singleton pour éviter plusieurs instances
+  if (!supabaseClient) {
+    supabaseClient = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    )
+  }
+  return supabaseClient
 }

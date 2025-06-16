@@ -69,6 +69,11 @@ export default function LoginPage() {
 
       // Redirection basée sur le rôle
       const userRole = data.user?.role || "stagiaire"
+      console.log("User role for redirection:", userRole)
+      
+      // Attendre un peu pour s'assurer que la session est bien établie
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       switch (userRole) {
         case "admin":
           router.push("/admin")

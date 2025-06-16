@@ -43,9 +43,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: authError.message }, { status: 401 })
     }
 
-    if (!authData.user) {
-      return NextResponse.json({ error: "Erreur de connexion" }, { status: 401 })
+    if (!authData.user || !authData.session) {
+      return NextResponse.json({ error: "Erreur de connexion - pas de session créée" }, { status: 401 })
     }
+
+    console.log("User logged in successfully:", authData.user.email)
 
     // Récupérer ou créer le profil utilisateur
     let profile = null
@@ -115,14 +117,20 @@ export async function POST(request: NextRequest) {
       console.warn("Failed to update last login:", updateError)
     }
 
+    // Préparer les données utilisateur finales
+    const finalUserData = profile || {
+      id: authData.user.id,
+      email: authData.user.email,
+      name: authData.user.user_metadata?.name || authData.user.email!.split("@")[0],
+      role: authData.user.user_metadata?.role || "stagiaire",
+    }
+
+    console.log("Returning user data:", finalUserData)
+
     return NextResponse.json({
       success: true,
-      user: profile || {
-        id: authData.user.id,
-        email: authData.user.email,
-        name: authData.user.user_metadata?.name || authData.user.email!.split("@")[0],
-        role: authData.user.user_metadata?.role || "stagiaire",
-      },
+      user: finalUserData,
+      session: authData.session,
       message: "Connexion réussie",
     })
   } catch (error) {
