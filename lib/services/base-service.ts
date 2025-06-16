@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/client'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-export abstract class BaseService {
+export class BaseService {
   protected supabase: SupabaseClient
 
   constructor() {
@@ -228,3 +228,5 @@ export interface ApiResponse<T> {
   data: T | null
   error: string | null
 }
+
+export default BaseService
