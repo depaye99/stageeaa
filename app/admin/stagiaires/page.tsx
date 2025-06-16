@@ -22,6 +22,9 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+// Force dynamic rendering to prevent prerendering issues
+export const dynamic = 'force-dynamic'
+
 export default function StagiairesPage() {
   const [user, setUser] = useState<any>(null)
   const [stagiaires, setStagiaires] = useState<any[]>([])
@@ -29,10 +32,14 @@ export default function StagiairesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [departmentFilter, setDepartmentFilter] = useState("all")
+  const [isInitialized, setIsInitialized] = useState(false)
   const router = useRouter()
 
+  // Load initial data
   useEffect(() => {
-    async function loadData() {
+    if (isInitialized) return
+
+    async function loadInitialData() {
       try {
         setLoading(true)
         const userResult = await authService.getCurrentUser()
@@ -48,31 +55,30 @@ export default function StagiairesPage() {
         }
 
         setUser(profileResult.profile)
+        setIsInitialized(true)
 
-        // Load all stagiaires
-        const stagiairesResult = await stagiaireService.getStagiaires({
-          status: statusFilter !== "all" ? statusFilter : undefined,
-          search: searchTerm || undefined,
-          department: departmentFilter !== "all" ? departmentFilter : undefined,
-        })
+        // Load initial stagiaires
+        const stagiairesResult = await stagiaireService.getStagiaires({})
         const stagiairesData = stagiairesResult.data || []
         setStagiaires(stagiairesData)
       } catch (error) {
-        console.error("Erreur lors du chargement:", error)
+        console.error("Erreur lors du chargement initial:", error)
         setStagiaires([])
       } finally {
         setLoading(false)
       }
     }
 
-    loadData()
-  }, [router])
+    loadInitialData()
+  }, [router, isInitialized])
 
-  // Separate useEffect for filtering
+  // Filter stagiaires when filters change
   useEffect(() => {
-    async function filterStagiaires() {
-      if (!user) return
-      
+    if (!isInitialized || !user) return
+
+    let timeoutId: NodeJS.Timeout
+
+    const filterStagiaires = async () => {
       try {
         const stagiairesResult = await stagiaireService.getStagiaires({
           status: statusFilter !== "all" ? statusFilter : undefined,
@@ -87,9 +93,17 @@ export default function StagiairesPage() {
       }
     }
 
-    const debounceTimer = setTimeout(filterStagiaires, 300)
-    return () => clearTimeout(debounceTimer)
-  }, [statusFilter, searchTerm, departmentFilter, user])
+    // Debounce search
+    if (searchTerm) {
+      timeoutId = setTimeout(filterStagiaires, 300)
+    } else {
+      filterStagiaires()
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [statusFilter, departmentFilter, searchTerm, isInitialized, user])
 
   const handleDelete = async (stagiaireId: string) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer ce stagiaire ?")) return
@@ -97,7 +111,7 @@ export default function StagiairesPage() {
     try {
       await stagiaireService.delete(stagiaireId)
 
-      // Reload stagiaires
+      // Reload stagiaires after deletion
       const stagiairesResult = await stagiaireService.getStagiaires({
         status: statusFilter !== "all" ? statusFilter : undefined,
         search: searchTerm || undefined,
@@ -138,7 +152,7 @@ export default function StagiairesPage() {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
 
-        <Select onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Filtrer par statut" />
           </SelectTrigger>
@@ -150,7 +164,7 @@ export default function StagiairesPage() {
           </SelectContent>
         </Select>
 
-        <Select onValueChange={setDepartmentFilter}>
+        <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Filtrer par département" />
           </SelectTrigger>
@@ -177,8 +191,8 @@ export default function StagiairesPage() {
         </TableHeader>
         <TableBody>
           {stagiaires.map((stagiaire) => (
-            <tr key={stagiaire.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
+            <TableRow key={stagiaire.id} className="hover:bg-gray-50">
+              <TableCell className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback>
@@ -193,14 +207,14 @@ export default function StagiairesPage() {
                     <div className="text-sm text-gray-500">{stagiaire.email}</div>
                   </div>
                 </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{stagiaire.etablissement}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{stagiaire.specialite}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              </TableCell>
+              <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{stagiaire.etablissement}</TableCell>
+              <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{stagiaire.specialite}</TableCell>
+              <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {new Date(stagiaire.date_debut).toLocaleDateString("fr-FR")} -{" "}
                 {new Date(stagiaire.date_fin).toLocaleDateString("fr-FR")}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              </TableCell>
+              <TableCell className="px-6 py-4 whitespace-nowrap">
                 <Badge
                   className={`${
                     stagiaire.statut === "actif"
@@ -212,8 +226,8 @@ export default function StagiairesPage() {
                 >
                   {stagiaire.statut}
                 </Badge>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              </TableCell>
+              <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div className="flex space-x-2">
                   <Link href={`/admin/stagiaires/${stagiaire.id}`}>
                     <Button variant="ghost" size="sm">
@@ -229,8 +243,8 @@ export default function StagiairesPage() {
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
         </TableBody>
         <TableFooter>
