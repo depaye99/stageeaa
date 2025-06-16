@@ -1,4 +1,3 @@
-
 "use client"
 
 import { stagiaireService } from "@/lib/services/stagiaires-service"
