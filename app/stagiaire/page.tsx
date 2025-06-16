@@ -168,14 +168,10 @@ export default function StagiaireDashboard() {
               <CardTitle>Nouvelle demande</CardTitle>
               <CardDescription>Soumettre une nouvelle demande</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Button className="w-full" onClick={() => router.push("/stagiaire/demandes/stage-academique")}>
+            <CardContent>
+              <Button className="w-full" onClick={() => router.push("/stagiaire/demandes/nouvelle")}>
                 <Plus className="mr-2 h-4 w-4" />
-                Stage académique
-              </Button>
-              <Button variant="outline" className="w-full" onClick={() => router.push("/stagiaire/demandes/attestation")}>
-                <Plus className="mr-2 h-4 w-4" />
-                Attestation
+                Créer une demande
               </Button>
             </CardContent>
           </Card>

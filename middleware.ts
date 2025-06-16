@@ -75,44 +75,18 @@ export async function middleware(request: NextRequest) {
     // Rafraîchir la session si nécessaire
     const {
       data: { user },
-      error: userError,
     } = await supabase.auth.getUser()
-
-    if (userError) {
-      console.warn("Middleware user error:", userError)
-    }
 
     // Si pas d'utilisateur et route privée, rediriger vers login
     if (!user && !isPublicRoute) {
-      console.log("No user found, redirecting to login from:", request.nextUrl.pathname)
       const loginUrl = new URL("/auth/login", request.url)
-      // Inclure les paramètres de requête existants
-      const fullPath = request.nextUrl.pathname + request.nextUrl.search
-      loginUrl.searchParams.set("redirectTo", fullPath)
+      loginUrl.searchParams.set("redirectTo", request.nextUrl.pathname)
       return NextResponse.redirect(loginUrl)
     }
 
     // Si utilisateur connecté et sur page de login, rediriger vers dashboard
     if (user && (request.nextUrl.pathname === "/auth/login" || request.nextUrl.pathname === "/auth/register")) {
-      // Vérifier s'il y a un paramètre redirectTo
-      const redirectTo = request.nextUrl.searchParams.get('redirectTo')
-      
-      if (redirectTo && redirectTo !== '/auth/login' && redirectTo !== '/auth/register') {
-        console.log("User already logged in, redirecting to requested page:", redirectTo)
-        return NextResponse.redirect(new URL(redirectTo, request.url))
-      }
-
-      // Sinon, redirection basée sur le rôle
-      let userRole = "stagiaire"
-      try {
-        const { data: userData } = await supabase.from("users").select("role").eq("id", user.id).single()
-        userRole = userData?.role || user.user_metadata?.role || "stagiaire"
-      } catch (error) {
-        console.warn("Could not fetch user role from database:", error)
-        userRole = user.user_metadata?.role || "stagiaire"
-      }
-
-      console.log("User already logged in, redirecting to dashboard:", userRole)
+      const userRole = user.user_metadata?.role || "stagiaire"
       const dashboardRoute =
         userRole === "admin" ? "/admin" : userRole === "rh" ? "/rh" : userRole === "tuteur" ? "/tuteur" : "/stagiaire"
       return NextResponse.redirect(new URL(dashboardRoute, request.url))

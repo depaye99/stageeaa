@@ -4,12 +4,6 @@ import type { UserRole } from "@/lib/supabase/database.types"
 
 export async function POST(request: NextRequest) {
   try {
-    // Vérifier les variables d'environnement
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.error("Variables d'environnement Supabase manquantes")
-      return NextResponse.json({ error: "Configuration serveur incorrecte" }, { status: 500 })
-    }
-
     const supabase = createClient()
     const body = await request.json()
     const { email, password, nom, prenom, telephone, role } = body
@@ -53,48 +47,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Créer le profil utilisateur dans notre table users
-    // Utilisons seulement les colonnes de base pour éviter les erreurs de schéma
-    try {
-      const userProfile = {
+    const { error: profileError } = await supabase.from("users").insert([
+      {
         id: authData.user.id,
         email: authData.user.email!,
         name: `${prenom} ${nom}`,
         role: (role as UserRole) || "stagiaire",
+        phone: telephone || null,
+        is_active: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      }
+      },
+    ])
 
-      // Ajouter les colonnes optionnelles seulement si elles existent
-      if (telephone) {
-        userProfile.phone = telephone
-      }
-
-      // Essayer d'abord avec toutes les colonnes
-      const { error: profileError } = await supabase.from("users").insert([userProfile])
-
-      // Si erreur de colonne manquante, essayer avec les colonnes de base seulement
-      if (profileError && profileError.message.includes("column")) {
-        console.warn("Some columns missing, trying with basic columns only:", profileError.message)
-
-        const basicProfile = {
-          id: authData.user.id,
-          email: authData.user.email!,
-          name: `${prenom} ${nom}`,
-          role: (role as UserRole) || "stagiaire",
-        }
-
-        const { error: basicError } = await supabase.from("users").insert([basicProfile])
-
-        if (basicError) {
-          console.error("Profile creation error with basic columns:", basicError)
-          // Ne pas échouer si le profil n'est pas créé
-        }
-      } else if (profileError) {
-        console.error("Profile creation error:", profileError)
-        // Ne pas échouer si le profil n'est pas créé
-      }
-    } catch (profileError) {
-      console.error("Profile creation exception:", profileError)
+    if (profileError) {
+      console.error("Profile creation error:", profileError)
       // Ne pas échouer si le profil n'est pas créé
     }
 

@@ -1,40 +1,21 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createClient as supabaseCreateClient } from "@supabase/supabase-js"
+import { cookies } from "next/headers"
 
-export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('Missing Supabase environment variables:', {
-      url: !!supabaseUrl,
-      key: !!supabaseAnonKey
-    })
-    throw new Error('Missing Supabase environment variables')
-  }
-
-  const cookieStore = cookies()
-
-  return createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
+export const createClient = () => {
+  return supabaseCreateClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return cookies().get(name)?.value
       },
-    }
-  )
+      set(name: string, value: string, options: any) {
+        cookies().set({ name, value, ...options })
+      },
+      remove(name: string, options: any) {
+        cookies().delete({ name, ...options })
+      },
+    },
+  })
 }

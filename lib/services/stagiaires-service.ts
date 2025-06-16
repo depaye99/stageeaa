@@ -79,45 +79,6 @@ export class StagiairesService extends BaseService<Stagiaire> {
       }
     }
   }
-
-  async getStagiaire(id: string) {
-    const { data, error } = await this.supabase
-      .from("stagiaires")
-      .select(`
-        *,
-        user:users(*),
-        tuteur:users!tuteur_id(*)
-      `)
-      .eq("id", id)
-      .single()
-
-    if (error) throw error
-    return data
-  }
-
-  async updateStagiaire(id: string, updates: any) {
-    const { data, error } = await this.supabase
-      .from("stagiaires")
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", id)
-      .select()
-      .single()
-
-    if (error) throw error
-    return data
-  }
-
-  async deleteStagiaire(id: string) {
-    const { error } = await this.supabase
-      .from("stagiaires")
-      .delete()
-      .eq("id", id)
-
-    if (error) throw error
-  }
 }
 
 export const stagiaireService = new StagiairesService()
