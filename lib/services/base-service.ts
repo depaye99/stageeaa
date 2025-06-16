@@ -1,134 +1,211 @@
-import { BaseService } from './base-service'
-import type { Stagiaire, SearchFilters, Statistics, ApiResponse } from '@/lib/types'
+import { createClient } from "@/lib/supabase/client"
+import type { ApiResponse, PaginatedResponse, FilterOptions, SortOptions } from "@/lib/supabase/database.types"
 
-class StagiairesService extends BaseService {
-  constructor() {
-    super()
-  }
-
-  async getStagiaires(filters?: SearchFilters): Promise<ApiResponse<Stagiaire[]>> {
-    try {
-      const params = new URLSearchParams()
-      if (filters) {
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined && value !== '') {
-            params.append(key, String(value))
-          }
-        })
-      }
-
-      const queryString = params.toString()
-      const endpoint = queryString ? `/stagiaires?${queryString}` : '/stagiaires'
-
-      return await this.getApi<Stagiaire[]>(endpoint)
-    } catch (error) {
-      return this.handleError(error)
-    }
-  }
-
-  async getStagiaire(id: string): Promise<ApiResponse<Stagiaire>> {
-    try {
-      return await this.getApi<Stagiaire>(`/stagiaires/${id}`)
-    } catch (error) {
-      return this.handleError(error)
-    }
-  }
-
-  async createStagiaire(stagiaire: Partial<Stagiaire>): Promise<ApiResponse<Stagiaire>> {
-    try {
-      return await this.post<Stagiaire>('/stagiaires', stagiaire)
-    } catch (error) {
-      return this.handleError(error)
-    }
-  }
-
-  async updateStagiaire(id: string, stagiaire: Partial<Stagiaire>): Promise<ApiResponse<Stagiaire>> {
-    try {
-      return await this.put<Stagiaire>(`/stagiaires/${id}`, stagiaire)
-    } catch (error) {
-      return this.handleError(error)
-    }
-  }
-
-  async deleteStagiaire(id: string): Promise<ApiResponse<void>> {
-    try {
-      return await this.deleteApi<void>(`/stagiaires/${id}`)
-    } catch (error) {
-      return this.handleError(error)
-    }
-  }
-
-  async getStagiairesStats(): Promise<ApiResponse<Statistics>> {
-    try {
-      return await this.getApi<Statistics>('/stagiaires/stats')
-    } catch (error) {
-      return this.handleError(error)
-    }
-  }
-
-  async searchStagiaires(query: string, filters?: Record<string, any>): Promise<ApiResponse<Stagiaire[]>> {
-    try {
-      const params = new URLSearchParams({ q: query })
-      if (filters) {
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            params.append(key, String(value))
-          }
-        })
-      }
-      return await this.getApi<Stagiaire[]>(`/stagiaires/search?${params.toString()}`)
-    } catch (error) {
-      return this.handleError(error)
-    }
-  }
-
-  async getAll(filters?: SearchFilters): Promise<Stagiaire[]> {
-    try {
-      const result = await this.getStagiaires(filters)
-      return result.success ? result.data || [] : []
-    } catch (error) {
-      console.error('Error in getAll:', error)
-      return []
-    }
-  }
-
-  async getAllStagiaires(): Promise<Stagiaire[]> {
-    return this.getAll()
-  }
-
-  async getStagiairesByTuteur(tuteurId: string): Promise<Stagiaire[]> {
-    try {
-      const result = await this.getStagiaires({ tuteurId })
-      return result.success ? result.data || [] : []
-    } catch (error) {
-      console.error('Error in getStagiairesByTuteur:', error)
-      return []
-    }
-  }
-
-  async create(stagiaire: Partial<Stagiaire>): Promise<Stagiaire | null> {
-    try {
-      const result = await this.createStagiaire(stagiaire)
-      return result.success ? result.data || null : null
-    } catch (error) {
-      console.error('Error in create:', error)
-      return null
-    }
-  }
-
-  async delete(id: string): Promise<boolean> {
-    try {
-      const result = await this.deleteStagiaire(id)
-      return result.success
-    } catch (error) {
-      console.error('Error in delete:', error)
-      return false
-    }
-  }
+export interface FindOptions {
+  page?: number
+  limit?: number
+  filters?: FilterOptions
+  sort?: SortOptions
+  include?: string[]
 }
 
-// Export singleton instance
-export const stagiaireService = new StagiairesService()
-export const stagiairesService = stagiaireService // Named export for compatibility
-export { BaseService }
-export default BaseService
+export abstract class BaseService<T> {
+  protected supabase = createClient()
+  protected tableName: string
+
+  constructor(tableName: string) {
+    this.tableName = tableName
+  }
+
+  async findAll(options: FindOptions = {}): Promise<PaginatedResponse<T>> {
+    try {
+      const { page = 1, limit = 10, filters = {}, sort, include = [] } = options
+
+      let query = this.supabase.from(this.tableName).select(this.getSelectFields(include), { count: "exact" })
+
+      // Appliquer les filtres
+      query = this.applyFilters(query, filters)
+
+      // Appliquer le tri
+      if (sort) {
+        query = query.order(sort.field, { ascending: sort.direction === "asc" })
+      }
+
+      // Appliquer la pagination
+      const from = (page - 1) * limit
+      const to = from + limit - 1
+      query = query.range(from, to)
+
+      const { data, error, count } = await query
+
+      if (error) throw error
+
+      return {
+        success: true,
+        data: data as T[],
+        error: null,
+        pagination: {
+          page,
+          limit,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / limit),
+        },
+      }
+    } catch (error) {
+      console.error(`Error in ${this.tableName} findAll:`, error)
+      return {
+        success: false,
+        data: [],
+        error: error instanceof Error ? error.message : "Unknown error",
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 0,
+        },
+      }
+    }
+  }
+
+  async findById(id: string, include: string[] = []): Promise<ApiResponse<T>> {
+    try {
+      const { data, error } = await this.supabase
+        .from(this.tableName)
+        .select(this.getSelectFields(include))
+        .eq("id", id)
+        .single()
+
+      if (error) throw error
+
+      return {
+        success: true,
+        data: data as T,
+        error: null,
+      }
+    } catch (error) {
+      console.error(`Error in ${this.tableName} findById:`, error)
+      return {
+        success: false,
+        data: null,
+        error: error instanceof Error ? error.message : "Unknown error",
+      }
+    }
+  }
+
+  async create(data: Partial<T>): Promise<ApiResponse<T>> {
+    try {
+      const { data: result, error } = await this.supabase
+        .from(this.tableName)
+        .insert([
+          {
+            ...data,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ])
+        .select()
+        .single()
+
+      if (error) throw error
+
+      return {
+        success: true,
+        data: result as T,
+        error: null,
+      }
+    } catch (error) {
+      console.error(`Error in ${this.tableName} create:`, error)
+      return {
+        success: false,
+        data: null,
+        error: error instanceof Error ? error.message : "Unknown error",
+      }
+    }
+  }
+
+  async update(id: string, data: Partial<T>): Promise<ApiResponse<T>> {
+    try {
+      const { data: result, error } = await this.supabase
+        .from(this.tableName)
+        .update({
+          ...data,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      return {
+        success: true,
+        data: result as T,
+        error: null,
+      }
+    } catch (error) {
+      console.error(`Error in ${this.tableName} update:`, error)
+      return {
+        success: false,
+        data: null,
+        error: error instanceof Error ? error.message : "Unknown error",
+      }
+    }
+  }
+
+  async delete(id: string): Promise<ApiResponse<void>> {
+    try {
+      const { error } = await this.supabase.from(this.tableName).delete().eq("id", id)
+
+      if (error) throw error
+
+      return {
+        success: true,
+        data: undefined,
+        error: null,
+      }
+    } catch (error) {
+      console.error(`Error in ${this.tableName} delete:`, error)
+      return {
+        success: false,
+        data: undefined,
+        error: error instanceof Error ? error.message : "Unknown error",
+      }
+    }
+  }
+
+  protected getSelectFields(include: string[] = []): string {
+    let fields = "*"
+
+    if (include.length > 0) {
+      // Logique pour inclure les relations
+      const relations = include.map((rel) => `${rel}(*)`).join(", ")
+      fields = `*, ${relations}`
+    }
+
+    return fields
+  }
+
+  protected applyFilters(query: any, filters: FilterOptions): any {
+    if (filters.search) {
+      // Implémentation de la recherche (à personnaliser par service)
+    }
+
+    if (filters.status) {
+      query = query.eq("statut", filters.status)
+    }
+
+    if (filters.type) {
+      query = query.eq("type", filters.type)
+    }
+
+    if (filters.role) {
+      query = query.eq("role", filters.role)
+    }
+
+    if (filters.dateRange) {
+      query = query.gte("created_at", filters.dateRange.start).lte("created_at", filters.dateRange.end)
+    }
+
+    return query
+  }
+}

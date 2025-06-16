@@ -1,442 +1,258 @@
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+// Types de base pour les rôles utilisateur
+export type UserRole = "admin" | "rh" | "tuteur" | "stagiaire"
 
-export interface Database {
-  public: {
-    Tables: {
-      users: {
-        Row: {
-          id: string
-          email: string
-          name: string
-          role: "stagiaire" | "tuteur" | "rh" | "admin" | "finance"
-          phone: string | null
-          address: string | null
-          avatar_url: string | null
-          department: string | null
-          position: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          email: string
-          name: string
-          role: "stagiaire" | "tuteur" | "rh" | "admin" | "finance"
-          phone?: string | null
-          address?: string | null
-          avatar_url?: string | null
-          department?: string | null
-          position?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          email?: string
-          name?: string
-          role?: "stagiaire" | "tuteur" | "rh" | "admin" | "finance"
-          phone?: string | null
-          address?: string | null
-          avatar_url?: string | null
-          department?: string | null
-          position?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      stagiaires: {
-        Row: {
-          id: string
-          user_id: string
-          nom: string
-          prenom: string
-          email: string
-          telephone: string | null
-          adresse: string | null
-          date_naissance: string | null
-          formation: string | null
-          ecole: string | null
-          niveau: string | null
-          periode: string
-          date_debut: string | null
-          date_fin: string | null
-          tuteur_id: string | null
-          departement: string | null
-          statut: "actif" | "termine" | "en_attente"
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          nom: string
-          prenom: string
-          email: string
-          telephone?: string | null
-          adresse?: string | null
-          date_naissance?: string | null
-          formation?: string | null
-          ecole?: string | null
-          niveau?: string | null
-          periode: string
-          date_debut?: string | null
-          date_fin?: string | null
-          tuteur_id?: string | null
-          departement?: string | null
-          statut?: "actif" | "termine" | "en_attente"
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          nom?: string
-          prenom?: string
-          email?: string
-          telephone?: string | null
-          adresse?: string | null
-          date_naissance?: string | null
-          formation?: string | null
-          ecole?: string | null
-          niveau?: string | null
-          periode?: string
-          date_debut?: string | null
-          date_fin?: string | null
-          tuteur_id?: string | null
-          departement?: string | null
-          statut?: "actif" | "termine" | "en_attente"
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      demandes: {
-        Row: {
-          id: string
-          date: string
-          type: "stage_academique" | "stage_professionnel" | "conge" | "prolongation" | "attestation"
-          statut: "En attente" | "Validé" | "Refusé"
-          details: string
-          stagiaire_id: string
-          tuteur_id: string | null
-          tuteur_decision: "En attente" | "Validé" | "Refusé"
-          rh_decision: "En attente" | "Validé" | "Refusé"
-          date_debut: string | null
-          date_fin: string | null
-          duree: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          date: string
-          type: "stage_academique" | "stage_professionnel" | "conge" | "prolongation" | "attestation"
-          statut?: "En attente" | "Validé" | "Refusé"
-          details: string
-          stagiaire_id: string
-          tuteur_id?: string | null
-          tuteur_decision?: "En attente" | "Validé" | "Refusé"
-          rh_decision?: "En attente" | "Validé" | "Refusé"
-          date_debut?: string | null
-          date_fin?: string | null
-          duree?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          date?: string
-          type?: "stage_academique" | "stage_professionnel" | "conge" | "prolongation" | "attestation"
-          statut?: "En attente" | "Validé" | "Refusé"
-          details?: string
-          stagiaire_id?: string
-          tuteur_id?: string | null
-          tuteur_decision?: "En attente" | "Validé" | "Refusé"
-          rh_decision?: "En attente" | "Validé" | "Refusé"
-          date_debut?: string | null
-          date_fin?: string | null
-          duree?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      documents: {
-        Row: {
-          id: string
-          date: string
-          nom: string
-          description: string | null
-          format: "PDF" | "DOC" | "IMG"
-          stagiaire_id: string
-          type:
-            | "cv"
-            | "lettre_motivation"
-            | "lettre_recommandation"
-            | "piece_identite"
-            | "certificat_scolarite"
-            | "convention"
-            | "attestation"
-            | "autre"
-          url: string
-          taille: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          date: string
-          nom: string
-          description?: string | null
-          format: "PDF" | "DOC" | "IMG"
-          stagiaire_id: string
-          type:
-            | "cv"
-            | "lettre_motivation"
-            | "lettre_recommandation"
-            | "piece_identite"
-            | "certificat_scolarite"
-            | "convention"
-            | "attestation"
-            | "autre"
-          url: string
-          taille?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          date?: string
-          nom?: string
-          description?: string | null
-          format?: "PDF" | "DOC" | "IMG"
-          stagiaire_id?: string
-          type?:
-            | "cv"
-            | "lettre_motivation"
-            | "lettre_recommandation"
-            | "piece_identite"
-            | "certificat_scolarite"
-            | "convention"
-            | "attestation"
-            | "autre"
-          url?: string
-          taille?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      evaluations: {
-        Row: {
-          id: string
-          stagiaire_id: string
-          tuteur_id: string
-          date: string
-          commentaire: string
-          note_globale: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          stagiaire_id: string
-          tuteur_id: string
-          date: string
-          commentaire: string
-          note_globale: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          stagiaire_id?: string
-          tuteur_id?: string
-          date?: string
-          commentaire?: string
-          note_globale?: number
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      notifications: {
-        Row: {
-          id: string
-          user_id: string
-          titre: string
-          message: string
-          type: "info" | "success" | "warning" | "error"
-          lu: boolean
-          date: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          titre: string
-          message: string
-          type: "info" | "success" | "warning" | "error"
-          lu?: boolean
-          date: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          titre?: string
-          message?: string
-          type?: "info" | "success" | "warning" | "error"
-          lu?: boolean
-          date?: string
-          created_at?: string
-        }
-      }
-    }
-    Views: {
-      stagiaires_view: {
-        Row: {
-          id: string
-          nom: string
-          prenom: string
-          email: string
-          telephone: string | null
-          formation: string | null
-          ecole: string | null
-          periode: string
-          tuteur_nom: string | null
-          departement: string | null
-          statut: string
-          nb_demandes: number
-          nb_documents: number
-        }
-      }
-      demandes_view: {
-        Row: {
-          id: string
-          date: string
-          type: string
-          statut: string
-          details: string
-          stagiaire_nom: string
-          stagiaire_prenom: string
-          tuteur_nom: string | null
-          tuteur_decision: string
-          rh_decision: string
-          nb_commentaires: number
-        }
-      }
-    }
-    Functions: {
-      get_dashboard_stats: {
-        Args: {
-          user_id: string
-          role: string
-        }
-        Returns: Json
-      }
-      search_stagiaires: {
-        Args: {
-          search_term: string
-          status_filter?: string
-          department_filter?: string
-        }
-        Returns: {
-          id: string
-          nom: string
-          prenom: string
-          email: string
-          formation: string
-          ecole: string
-          tuteur_nom: string
-          departement: string
-          statut: string
-        }[]
-      }
-    }
+// Types de statut pour les demandes
+export type DemandeStatus = "en_attente" | "approuvee" | "rejetee" | "en_cours" | "terminee"
+
+// Types de demandes
+export type DemandeType = "stage_academique" | "stage_professionnel" | "conge" | "prolongation" | "attestation"
+
+// Interface User
+export interface User {
+  id: string
+  email: string
+  name: string
+  role: UserRole
+  phone?: string
+  address?: string
+  department?: string
+  position?: string
+  avatar_url?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  last_login?: string
+}
+
+// Interface UserProfile (pour les données publiques)
+export interface UserProfile {
+  id: string
+  name: string
+  role: UserRole
+  department?: string
+  position?: string
+  avatar_url?: string
+}
+
+// Interface Stagiaire
+export interface Stagiaire {
+  id: string
+  user_id: string
+  tuteur_id?: string
+  entreprise?: string
+  poste?: string
+  date_debut?: string
+  date_fin?: string
+  statut: "actif" | "termine" | "suspendu"
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
+// Interface Stagiaire avec relations
+export interface StagiaireWithUser extends Stagiaire {
+  users?: User
+  tuteur?: User
+}
+
+// Interface Demande
+export interface Demande {
+  id: string
+  stagiaire_id: string
+  tuteur_id?: string
+  type: DemandeType
+  titre: string
+  description?: string
+  statut: DemandeStatus
+  date_demande: string
+  date_reponse?: string
+  commentaire_reponse?: string
+  documents_requis?: string[]
+  created_at: string
+  updated_at: string
+}
+
+// Interface Demande avec relations
+export interface DemandeWithRelations extends Demande {
+  stagiaires?: StagiaireWithUser
+  tuteur?: User
+}
+
+// Interface Document
+export interface Document {
+  id: string
+  nom: string
+  type: string
+  taille: number
+  url: string
+  user_id: string
+  demande_id?: string
+  is_public: boolean
+  created_at: string
+  updated_at: string
+}
+
+// Interface Document avec relations
+export interface DocumentWithRelations extends Document {
+  users?: User
+  demandes?: Demande
+}
+
+// Interface Evaluation
+export interface Evaluation {
+  id: string
+  stagiaire_id: string
+  evaluateur_id: string
+  type: "mi_parcours" | "finale" | "auto_evaluation"
+  note_globale?: number
+  competences_techniques?: number
+  competences_relationnelles?: number
+  autonomie?: number
+  commentaires?: string
+  date_evaluation: string
+  created_at: string
+  updated_at: string
+}
+
+// Interface Evaluation avec relations
+export interface EvaluationWithRelations extends Evaluation {
+  stagiaires?: StagiaireWithUser
+  evaluateur?: User
+}
+
+// Interface Notification
+export interface Notification {
+  id: string
+  user_id: string
+  titre: string
+  message: string
+  type: "info" | "success" | "warning" | "error"
+  lu: boolean
+  date: string
+  created_at: string
+}
+
+// Interface Notification avec relations
+export interface NotificationWithRelations extends Notification {
+  users?: User
+}
+
+// Interface Template
+export interface Template {
+  id: string
+  nom: string
+  type: "email" | "document" | "rapport"
+  contenu: string
+  variables: string[]
+  is_active: boolean
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+// Types pour les statistiques du dashboard
+export interface DashboardStats {
+  stagiaires_total: number
+  stagiaires_actifs: number
+  demandes_en_attente: number
+  demandes_total: number
+  documents_total: number
+  evaluations_total: number
+  notifications_non_lues: number
+}
+
+// Types pour les réponses API
+export interface ApiResponse<T = any> {
+  success: boolean
+  data?: T
+  error?: string
+  message?: string
+}
+
+export interface PaginatedResponse<T = any> extends ApiResponse<T[]> {
+  pagination?: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
   }
 }
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
 
+// Types pour les options de filtrage et tri
+export interface FilterOptions {
+  status?: string
+  type?: string
+  department?: string
+  role?: UserRole
+  dateRange?: {
+    start: string
+    end: string
+  }
+  search?: string
+}
+
+export interface SortOptions {
+  field: string
+  direction: "asc" | "desc"
+}
+
+// Types pour les options de recherche
+export interface FindOptions {
+  page?: number
+  limit?: number
+  filters?: FilterOptions
+  sort?: SortOptions
+  include?: string[]
+}
+
+// Types pour les métadonnées
+export interface Metadata {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
+// Export des types Supabase générés (si disponibles)
 export interface Database {
   public: {
     Tables: {
       users: {
-        Row: {
-          id: string
-          email: string
-          role: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          email: string
-          role?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          email?: string
-          role?: string
-          created_at?: string
-          updated_at?: string
-        }
+        Row: User
+        Insert: Omit<User, "id" | "created_at" | "updated_at">
+        Update: Partial<Omit<User, "id" | "created_at">>
       }
       stagiaires: {
-        Row: {
-          id: string
-          user_id: string
-          nom: string
-          prenom: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          nom: string
-          prenom: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          nom?: string
-          prenom?: string
-          created_at?: string
-          updated_at?: string
-        }
+        Row: Stagiaire
+        Insert: Omit<Stagiaire, "id" | "created_at" | "updated_at">
+        Update: Partial<Omit<Stagiaire, "id" | "created_at">>
       }
       demandes: {
-        Row: {
-          id: string
-          stagiaire_id: string
-          type: string
-          statut: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          stagiaire_id: string
-          type: string
-          statut?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          stagiaire_id?: string
-          type?: string
-          statut?: string
-          created_at?: string
-          updated_at?: string
-        }
+        Row: Demande
+        Insert: Omit<Demande, "id" | "created_at" | "updated_at">
+        Update: Partial<Omit<Demande, "id" | "created_at">>
+      }
+      documents: {
+        Row: Document
+        Insert: Omit<Document, "id" | "created_at" | "updated_at">
+        Update: Partial<Omit<Document, "id" | "created_at">>
+      }
+      evaluations: {
+        Row: Evaluation
+        Insert: Omit<Evaluation, "id" | "created_at" | "updated_at">
+        Update: Partial<Omit<Evaluation, "id" | "created_at">>
+      }
+      notifications: {
+        Row: Notification
+        Insert: Omit<Notification, "id" | "created_at">
+        Update: Partial<Omit<Notification, "id" | "created_at">>
+      }
+      templates: {
+        Row: Template
+        Insert: Omit<Template, "id" | "created_at" | "updated_at">
+        Update: Partial<Omit<Template, "id" | "created_at">>
       }
     }
     Views: {
@@ -446,7 +262,9 @@ export interface Database {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: UserRole
+      demande_status: DemandeStatus
+      demande_type: DemandeType
     }
   }
 }

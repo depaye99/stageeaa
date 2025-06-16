@@ -1,133 +1,84 @@
-import BaseService from './base-service'
-import type { Stagiaire, SearchFilters, Statistics, ApiResponse } from '@/lib/types'
+import { BaseService } from "./base-service"
+import type { Stagiaire, StagiaireWithUser, ApiResponse } from "@/lib/supabase/database.types"
 
-class StagiairesService extends BaseService {
+export class StagiairesService extends BaseService<Stagiaire> {
   constructor() {
-    super()
+    super("stagiaires")
   }
 
-  async getStagiaires(filters?: SearchFilters): Promise<ApiResponse<Stagiaire[]>> {
+  async findWithUser(id: string): Promise<ApiResponse<StagiaireWithUser>> {
     try {
-      const params = new URLSearchParams()
-      if (filters) {
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined && value !== '') {
-            params.append(key, String(value))
-          }
-        })
+      const { data, error } = await this.supabase
+        .from(this.tableName)
+        .select("*, users!user_id(*), tuteur:users!tuteur_id(*)")
+        .eq("id", id)
+        .single()
+
+      if (error) throw error
+
+      return {
+        success: true,
+        data: data as StagiaireWithUser,
+        error: null,
       }
-
-      const queryString = params.toString()
-      const endpoint = queryString ? `/stagiaires?${queryString}` : '/stagiaires'
-
-      return await this.getApi<Stagiaire[]>(endpoint)
     } catch (error) {
-      return this.handleError(error)
-    }
-  }
-
-  async getStagiaire(id: string): Promise<ApiResponse<Stagiaire>> {
-    try {
-      return await this.getApi<Stagiaire>(`/stagiaires/${id}`)
-    } catch (error) {
-      return this.handleError(error)
-    }
-  }
-
-  async createStagiaire(stagiaire: Partial<Stagiaire>): Promise<ApiResponse<Stagiaire>> {
-    try {
-      return await this.post<Stagiaire>('/stagiaires', stagiaire)
-    } catch (error) {
-      return this.handleError(error)
-    }
-  }
-
-  async updateStagiaire(id: string, stagiaire: Partial<Stagiaire>): Promise<ApiResponse<Stagiaire>> {
-    try {
-      return await this.put<Stagiaire>(`/stagiaires/${id}`, stagiaire)
-    } catch (error) {
-      return this.handleError(error)
-    }
-  }
-
-  async deleteStagiaire(id: string): Promise<ApiResponse<void>> {
-    try {
-      return await this.deleteApi<void>(`/stagiaires/${id}`)
-    } catch (error) {
-      return this.handleError(error)
-    }
-  }
-
-  async getStagiairesStats(): Promise<ApiResponse<Statistics>> {
-    try {
-      return await this.getApi<Statistics>('/stagiaires/stats')
-    } catch (error) {
-      return this.handleError(error)
-    }
-  }
-
-  async searchStagiaires(query: string, filters?: Record<string, any>): Promise<ApiResponse<Stagiaire[]>> {
-    try {
-      const params = new URLSearchParams({ q: query })
-      if (filters) {
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            params.append(key, String(value))
-          }
-        })
+      console.error("Error in findWithUser:", error)
+      return {
+        success: false,
+        data: null,
+        error: error instanceof Error ? error.message : "Unknown error",
       }
-      return await this.getApi<Stagiaire[]>(`/stagiaires/search?${params.toString()}`)
-    } catch (error) {
-      return this.handleError(error)
     }
   }
 
-  async getAll(filters?: SearchFilters): Promise<Stagiaire[]> {
+  async findByTuteur(tuteurId: string): Promise<ApiResponse<StagiaireWithUser[]>> {
     try {
-      const result = await this.getStagiaires(filters)
-      return result.success ? result.data || [] : []
+      const { data, error } = await this.supabase
+        .from(this.tableName)
+        .select("*, users!user_id(*)")
+        .eq("tuteur_id", tuteurId)
+
+      if (error) throw error
+
+      return {
+        success: true,
+        data: data as StagiaireWithUser[],
+        error: null,
+      }
     } catch (error) {
-      console.error('Error in getAll:', error)
-      return []
+      console.error("Error in findByTuteur:", error)
+      return {
+        success: false,
+        data: null,
+        error: error instanceof Error ? error.message : "Unknown error",
+      }
     }
   }
 
-  async getAllStagiaires(): Promise<Stagiaire[]> {
-    return this.getAll()
-  }
-
-  async getStagiairesByTuteur(tuteurId: string): Promise<Stagiaire[]> {
+  async findByUserId(userId: string): Promise<ApiResponse<StagiaireWithUser>> {
     try {
-      const result = await this.getStagiaires({ tuteurId })
-      return result.success ? result.data || [] : []
-    } catch (error) {
-      console.error('Error in getStagiairesByTuteur:', error)
-      return []
-    }
-  }
+      const { data, error } = await this.supabase
+        .from(this.tableName)
+        .select("*, users!user_id(*), tuteur:users!tuteur_id(*)")
+        .eq("user_id", userId)
+        .single()
 
-  async create(stagiaire: Partial<Stagiaire>): Promise<Stagiaire | null> {
-    try {
-      const result = await this.createStagiaire(stagiaire)
-      return result.success ? result.data || null : null
-    } catch (error) {
-      console.error('Error in create:', error)
-      return null
-    }
-  }
+      if (error) throw error
 
-  async delete(id: string): Promise<boolean> {
-    try {
-      const result = await this.deleteStagiaire(id)
-      return result.success
+      return {
+        success: true,
+        data: data as StagiaireWithUser,
+        error: null,
+      }
     } catch (error) {
-      console.error('Error in delete:', error)
-      return false
+      console.error("Error in findByUserId:", error)
+      return {
+        success: false,
+        data: null,
+        error: error instanceof Error ? error.message : "Unknown error",
+      }
     }
   }
 }
 
-// Export singleton instance
 export const stagiaireService = new StagiairesService()
-export const stagiairesService = stagiaireService // Named export for compatibility
-export default stagiaireService
