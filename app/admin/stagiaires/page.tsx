@@ -34,6 +34,7 @@ export default function StagiairesPage() {
   useEffect(() => {
     async function loadData() {
       try {
+        setLoading(true)
         const userResult = await authService.getCurrentUser()
         if (!userResult) {
           router.push("/auth/login")
@@ -58,13 +59,37 @@ export default function StagiairesPage() {
         setStagiaires(stagiairesData)
       } catch (error) {
         console.error("Erreur lors du chargement:", error)
+        setStagiaires([])
       } finally {
         setLoading(false)
       }
     }
 
     loadData()
-  }, [router, statusFilter, searchTerm, departmentFilter])
+  }, [router])
+
+  // Separate useEffect for filtering
+  useEffect(() => {
+    async function filterStagiaires() {
+      if (!user) return
+      
+      try {
+        const stagiairesResult = await stagiaireService.getStagiaires({
+          status: statusFilter !== "all" ? statusFilter : undefined,
+          search: searchTerm || undefined,
+          department: departmentFilter !== "all" ? departmentFilter : undefined,
+        })
+        const stagiairesData = stagiairesResult.data || []
+        setStagiaires(stagiairesData)
+      } catch (error) {
+        console.error("Erreur lors du filtrage:", error)
+        setStagiaires([])
+      }
+    }
+
+    const debounceTimer = setTimeout(filterStagiaires, 300)
+    return () => clearTimeout(debounceTimer)
+  }, [statusFilter, searchTerm, departmentFilter, user])
 
   const handleDelete = async (stagiaireId: string) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer ce stagiaire ?")) return
