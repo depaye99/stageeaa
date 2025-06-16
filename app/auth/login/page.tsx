@@ -35,6 +35,18 @@ function LoginForm() {
     setIsLoading(true)
     setError("")
 
+    // Vérifier la configuration Supabase côté client
+    if (typeof window !== 'undefined') {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      
+      if (!supabaseUrl || !supabaseKey) {
+        setError("Configuration Supabase manquante. Vérifiez vos variables d'environnement.")
+        setIsLoading(false)
+        return
+      }
+    }
+
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
