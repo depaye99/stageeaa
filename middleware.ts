@@ -84,15 +84,25 @@ export async function middleware(request: NextRequest) {
 
     // Si pas d'utilisateur et route privée, rediriger vers login
     if (!user && !isPublicRoute) {
-      console.log("No user found, redirecting to login")
+      console.log("No user found, redirecting to login from:", request.nextUrl.pathname)
       const loginUrl = new URL("/auth/login", request.url)
-      loginUrl.searchParams.set("redirectTo", request.nextUrl.pathname)
+      // Inclure les paramètres de requête existants
+      const fullPath = request.nextUrl.pathname + request.nextUrl.search
+      loginUrl.searchParams.set("redirectTo", fullPath)
       return NextResponse.redirect(loginUrl)
     }
 
     // Si utilisateur connecté et sur page de login, rediriger vers dashboard
     if (user && (request.nextUrl.pathname === "/auth/login" || request.nextUrl.pathname === "/auth/register")) {
-      // Récupérer le rôle depuis la base de données plutôt que des métadonnées
+      // Vérifier s'il y a un paramètre redirectTo
+      const redirectTo = request.nextUrl.searchParams.get('redirectTo')
+      
+      if (redirectTo && redirectTo !== '/auth/login' && redirectTo !== '/auth/register') {
+        console.log("User already logged in, redirecting to requested page:", redirectTo)
+        return NextResponse.redirect(new URL(redirectTo, request.url))
+      }
+
+      // Sinon, redirection basée sur le rôle
       let userRole = "stagiaire"
       try {
         const { data: userData } = await supabase.from("users").select("role").eq("id", user.id).single()

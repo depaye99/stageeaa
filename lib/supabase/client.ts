@@ -8,6 +8,18 @@ export function createClient() {
     supabaseClient = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            'X-Client-Info': 'supabase-js-web'
+          }
+        },
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
+      }
     )
   }
   return supabaseClient
