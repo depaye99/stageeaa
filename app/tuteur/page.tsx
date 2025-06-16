@@ -1,173 +1,222 @@
+
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Header } from "@/components/layout/header"
-import { Users, FileText, ClipboardList, Calendar } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
+import { Footer } from "@/components/layout/footer"
+import { Sidebar } from "@/components/layout/sidebar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Users, FileText, CheckCircle, Clock, AlertCircle } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { authService } from "@/lib/services/auth-service"
+import { demandesService } from "@/lib/services/demandes-service"
+import { stagiairesService } from "@/lib/services/stagiaires-service"
 
 export default function TuteurDashboard() {
   const [user, setUser] = useState<any>(null)
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+    async function loadData() {
+      try {
+        const userResult = await authService.getCurrentUser()
+        if (!userResult) {
+          router.push("/auth/login")
+          return
+        }
 
-      if (!session) {
-        router.push("/auth/login")
-        return
+        const profileResult = await authService.getUserProfile(userResult.id)
+        if (!profileResult.profile || profileResult.profile.role !== "tuteur") {
+          router.push("/auth/login")
+          return
+        }
+
+        setUser(profileResult.profile)
+
+        // Récupérer les statistiques du tuteur
+        const dashboardResponse = await fetch(`/api/dashboard?userId=${userResult.user.id}&role=tuteur`)
+        const dashboardStats = await dashboardResponse.json()
+
+        // Récupérer les demandes récentes pour ce tuteur
+        const demandesData = await demandesService.getAll({
+          tuteurId: userResult.user.id,
+          limit: 5,
+        })
+
+        setStats({
+          ...dashboardStats,
+          recentDemandes: demandesData || [],
+        })
+      } catch (error) {
+        console.error("Erreur lors du chargement:", error)
+      } finally {
+        setLoading(false)
       }
-
-      const { data: profile } = await supabase.from("users").select("*").eq("id", session.user.id).single()
-
-      if (!profile || profile.role !== "tuteur") {
-        router.push("/auth/login")
-        return
-      }
-
-      setUser(profile)
-      await loadStats()
-      setLoading(false)
     }
 
-    checkAuth()
-  }, [router, supabase])
+    loadData()
+  }, [router])
 
-  const loadStats = async () => {
-    try {
-      const [mesStagiairesCount, demandesCount, evaluationsCount] = await Promise.all([
-        supabase.from("stagiaires").select("id", { count: "exact", head: true }).eq("tuteur_id", user?.id),
-        supabase.from("demandes").select("id", { count: "exact", head: true }).eq("tuteur_id", user?.id),
-        supabase.from("evaluations").select("id", { count: "exact", head: true }).eq("evaluateur_id", user?.id),
-      ])
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("fr-FR")
+  }
 
-      setStats({
-        mes_stagiaires: mesStagiairesCount.count || 0,
-        demandes_total: demandesCount.count || 0,
-        evaluations_total: evaluationsCount.count || 0,
-      })
-    } catch (error) {
-      console.error("Erreur lors du chargement des statistiques:", error)
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      "En attente": { color: "bg-orange-100 text-orange-800", text: "En attente" },
+      "Validé": { color: "bg-green-100 text-green-800", text: "Validé" },
+      "Rejeté": { color: "bg-red-100 text-red-800", text: "Rejeté" },
+      "en_attente": { color: "bg-orange-100 text-orange-800", text: "En attente" },
+      "approuve": { color: "bg-green-100 text-green-800", text: "Approuvé" },
+      "refuse": { color: "bg-red-100 text-red-800", text: "Refusé" },
     }
+
+    const config = statusConfig[status] || { color: "bg-gray-100 text-gray-800", text: status }
+    return (
+      <Badge className={config.color}>
+        {config.text}
+      </Badge>
+    )
   }
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+          <p className="mt-4">Chargement...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col">
       <Header user={user} />
 
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Tableau de bord Tuteur</h1>
-          <p className="text-gray-600">Bienvenue, {user?.name}</p>
-        </div>
+      <div className="flex flex-1">
+        <Sidebar role="tuteur" />
 
-        {/* Statistiques */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Mes stagiaires</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.mes_stagiaires || 0}</div>
-              <p className="text-xs text-muted-foreground">Stagiaires sous ma supervision</p>
-            </CardContent>
-          </Card>
+        <main className="flex-1 p-6 bg-gray-50">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold mb-2">Tableau de bord - Tuteur</h1>
+            <p className="text-gray-600">
+              Bienvenue {user?.first_name || user?.name}. Voici un aperçu de vos stagiaires et demandes.
+            </p>
+          </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Demandes</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.demandes_total || 0}</div>
-              <p className="text-xs text-muted-foreground">Demandes à traiter</p>
-            </CardContent>
-          </Card>
+          {/* Statistiques principales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card className="border border-gray-200 rounded-lg">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="text-3xl font-bold">{stats?.stagiaires_total || 0}</span>
+                  <div className="ml-2 w-6 h-6 bg-gray-800 rounded flex items-center justify-center">
+                    <Users className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <h3 className="font-semibold mb-1">Mes stagiaires</h3>
+                <p className="text-sm text-gray-600">Stagiaires sous votre supervision</p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Évaluations</CardTitle>
-              <ClipboardList className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.evaluations_total || 0}</div>
-              <p className="text-xs text-muted-foreground">Évaluations réalisées</p>
-            </CardContent>
-          </Card>
-        </div>
+            <Card className="border border-gray-200 rounded-lg">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="text-3xl font-bold">{stats?.demandes_en_cours || 0}</span>
+                  <div className="ml-2 w-6 h-6 bg-gray-800 rounded flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <h3 className="font-semibold mb-1">Demandes en attente</h3>
+                <p className="text-sm text-gray-600">À valider ou traiter</p>
+              </CardContent>
+            </Card>
 
-        {/* Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
+            <Card className="border border-gray-200 rounded-lg">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="text-3xl font-bold">{stats?.demandes_validees || 0}</span>
+                  <div className="ml-2 w-6 h-6 bg-gray-800 rounded flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <h3 className="font-semibold mb-1">Demandes validées</h3>
+                <p className="text-sm text-gray-600">Ce mois-ci</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-gray-200 rounded-lg">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="text-3xl font-bold">{stats?.evaluations_a_faire || 0}</span>
+                  <div className="ml-2 w-6 h-6 bg-gray-800 rounded flex items-center justify-center">
+                    <AlertCircle className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <h3 className="font-semibold mb-1">Évaluations à faire</h3>
+                <p className="text-sm text-gray-600">En attente de votre évaluation</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Demandes récentes */}
+          <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Mes stagiaires</CardTitle>
-              <CardDescription>Gérer et suivre mes stagiaires</CardDescription>
+              <CardTitle>Demandes récentes</CardTitle>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" onClick={() => router.push("/tuteur/stagiaires")}>
-                <Users className="mr-2 h-4 w-4" />
-                Voir mes stagiaires
-              </Button>
+              {stats?.recentDemandes && stats.recentDemandes.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Date</th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Stagiaire</th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Type</th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Statut</th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Détails</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {stats.recentDemandes.map((demande) => (
+                        <tr key={demande.id}>
+                          <td className="px-6 py-4 text-sm">{formatDate(demande.created_at)}</td>
+                          <td className="px-6 py-4 text-sm">
+                            {demande.stagiaires?.profiles?.first_name} {demande.stagiaires?.profiles?.last_name}
+                          </td>
+                          <td className="px-6 py-4 text-sm">{demande.type}</td>
+                          <td className="px-6 py-4">{getStatusBadge(demande.statut)}</td>
+                          <td className="px-6 py-4 text-sm">{demande.titre || demande.description}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  Aucune demande récente
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Demandes</CardTitle>
-              <CardDescription>Traiter les demandes de mes stagiaires</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" onClick={() => router.push("/tuteur/demandes")}>
-                <FileText className="mr-2 h-4 w-4" />
-                Voir les demandes
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Notifications */}
+          {stats?.demandes_en_cours > 0 && (
+            <div className="mt-6 bg-blue-100 border border-blue-300 rounded-lg p-4">
+              <p className="text-blue-800 font-medium">Notification</p>
+              <p className="text-blue-700">
+                Vous avez {stats.demandes_en_cours} demande(s) en attente de validation
+              </p>
+            </div>
+          )}
+        </main>
+      </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Évaluations</CardTitle>
-              <CardDescription>Évaluer les performances des stagiaires</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" onClick={() => router.push("/tuteur/evaluations")}>
-                <ClipboardList className="mr-2 h-4 w-4" />
-                Gérer les évaluations
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Planning</CardTitle>
-              <CardDescription>Consulter le planning des stages</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" onClick={() => router.push("/tuteur/planning")}>
-                <Calendar className="mr-2 h-4 w-4" />
-                Voir le planning
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+      <Footer />
     </div>
   )
 }

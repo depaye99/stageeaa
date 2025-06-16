@@ -1,160 +1,216 @@
+
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Header } from "@/components/layout/header"
-import { FileText, Calendar, UserPlus, ClipboardList } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
+import { Footer } from "@/components/layout/footer"
+import { Sidebar } from "@/components/layout/sidebar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Users, FileText, CheckCircle, Clock } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { authService } from "@/lib/services/auth-service"
 
 export default function RHDashboard() {
   const [user, setUser] = useState<any>(null)
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+    async function loadData() {
+      try {
+        const userResult = await authService.getCurrentUser()
+        if (!userResult) {
+          router.push("/auth/login")
+          return
+        }
 
-      if (!session) {
-        router.push("/auth/login")
-        return
+        const profileResult = await authService.getUserProfile(userResult.id)
+        if (!profileResult.profile || profileResult.profile.role !== "rh") {
+          router.push("/auth/login")
+          return
+        }
+
+        setUser(profileResult.profile)
+
+        // Récupérer les statistiques RH
+        const dashboardResponse = await fetch(`/api/dashboard?userId=${userResult.user.id}&role=rh`)
+        const dashboardStats = await dashboardResponse.json()
+
+        setStats(dashboardStats)
+      } catch (error) {
+        console.error("Erreur lors du chargement:", error)
+      } finally {
+        setLoading(false)
       }
-
-      const { data: profile } = await supabase.from("users").select("*").eq("id", session.user.id).single()
-
-      if (!profile || profile.role !== "rh") {
-        router.push("/auth/login")
-        return
-      }
-
-      setUser(profile)
-      await loadStats()
-      setLoading(false)
     }
 
-    checkAuth()
-  }, [router, supabase])
+    loadData()
+  }, [router])
 
-  const loadStats = async () => {
-    try {
-      const [stagiairesCount, demandesCount, demandesEnAttenteCount] = await Promise.all([
-        supabase.from("stagiaires").select("id", { count: "exact", head: true }),
-        supabase.from("demandes").select("id", { count: "exact", head: true }),
-        supabase.from("demandes").select("id", { count: "exact", head: true }).eq("statut", "en_attente"),
-      ])
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("fr-FR")
+  }
 
-      setStats({
-        stagiaires_total: stagiairesCount.count || 0,
-        demandes_total: demandesCount.count || 0,
-        demandes_en_attente: demandesEnAttenteCount.count || 0,
-      })
-    } catch (error) {
-      console.error("Erreur lors du chargement des statistiques:", error)
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      "En attente": { color: "bg-orange-100 text-orange-800", text: "En attente" },
+      "Validé": { color: "bg-green-100 text-green-800", text: "Validé" },
+      "Rejeté": { color: "bg-red-100 text-red-800", text: "Rejeté" },
+      "en_attente": { color: "bg-orange-100 text-orange-800", text: "En attente" },
+      "approuve": { color: "bg-green-100 text-green-800", text: "Approuvé" },
+      "refuse": { color: "bg-red-100 text-red-800", text: "Refusé" },
     }
+
+    const config = statusConfig[status] || { color: "bg-gray-100 text-gray-800", text: status }
+    return (
+      <Badge className={config.color}>
+        {config.text}
+      </Badge>
+    )
   }
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+          <p className="mt-4">Chargement...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col">
       <Header user={user} />
 
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Tableau de bord RH</h1>
-          <p className="text-gray-600">Bienvenue, {user?.name}</p>
-        </div>
+      <div className="flex flex-1">
+        <Sidebar role="rh" />
 
-        {/* Statistiques */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Stagiaires</CardTitle>
-              <UserPlus className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.stagiaires_total || 0}</div>
-              <p className="text-xs text-muted-foreground">Stagiaires actifs</p>
-            </CardContent>
-          </Card>
+        <main className="flex-1 p-6 bg-gray-50">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold mb-2">Tableau de bord RH</h1>
+            <p className="text-gray-600">
+              Bienvenue {user?.first_name || user?.name}. Voici un aperçu des activités RH.
+            </p>
+          </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Demandes</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.demandes_total || 0}</div>
-              <p className="text-xs text-muted-foreground">Total des demandes</p>
-            </CardContent>
-          </Card>
+          {/* Statistiques principales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card className="border border-gray-200 rounded-lg">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="text-3xl font-bold">{stats?.stagiaires_total || 0}</span>
+                  <div className="ml-2 w-6 h-6 bg-gray-800 rounded flex items-center justify-center">
+                    <Users className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <h3 className="font-semibold mb-1">Stagiaires actifs</h3>
+                <p className="text-sm text-gray-600">Total dans l'entreprise</p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">En attente</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.demandes_en_attente || 0}</div>
-              <p className="text-xs text-muted-foreground">Demandes en attente</p>
-            </CardContent>
-          </Card>
-        </div>
+            <Card className="border border-gray-200 rounded-lg">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="text-3xl font-bold">{stats?.demandes_en_cours || 0}</span>
+                  <div className="ml-2 w-6 h-6 bg-gray-800 rounded flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <h3 className="font-semibold mb-1">Demandes en attente</h3>
+                <p className="text-sm text-gray-600">À traiter par RH</p>
+              </CardContent>
+            </Card>
 
-        {/* Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card>
+            <Card className="border border-gray-200 rounded-lg">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="text-3xl font-bold">{stats?.demandes_validees || 0}</span>
+                  <div className="ml-2 w-6 h-6 bg-gray-800 rounded flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <h3 className="font-semibold mb-1">Demandes traitées</h3>
+                <p className="text-sm text-gray-600">Ce mois-ci</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-gray-200 rounded-lg">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <span className="text-3xl font-bold">{stats?.documents_total || 0}</span>
+                  <div className="ml-2 w-6 h-6 bg-gray-800 rounded flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <h3 className="font-semibold mb-1">Documents</h3>
+                <p className="text-sm text-gray-600">Gérés par RH</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Demandes RH récentes */}
+          <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Gestion des stagiaires</CardTitle>
-              <CardDescription>Superviser les stagiaires et leurs stages</CardDescription>
+              <CardTitle>Demandes RH récentes</CardTitle>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" onClick={() => router.push("/rh/stagiaires")}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Gérer les stagiaires
-              </Button>
+              {stats?.demandesRH && stats.demandesRH.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Date</th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Stagiaire</th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Type</th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Statut</th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {stats.demandesRH.map((demande) => (
+                        <tr key={demande.id}>
+                          <td className="px-6 py-4 text-sm">{formatDate(demande.created_at)}</td>
+                          <td className="px-6 py-4 text-sm">
+                            {demande.stagiaires?.profiles?.first_name} {demande.stagiaires?.profiles?.last_name}
+                          </td>
+                          <td className="px-6 py-4 text-sm">{demande.type}</td>
+                          <td className="px-6 py-4">{getStatusBadge(demande.statut)}</td>
+                          <td className="px-6 py-4">
+                            <Button variant="outline" size="sm">
+                              Examiner
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  Aucune demande récente
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Demandes</CardTitle>
-              <CardDescription>Traiter les demandes des stagiaires</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" onClick={() => router.push("/rh/demandes")}>
-                <FileText className="mr-2 h-4 w-4" />
-                Voir les demandes
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Notifications */}
+          {stats?.demandes_en_cours > 0 && (
+            <div className="mt-6 bg-blue-100 border border-blue-300 rounded-lg p-4">
+              <p className="text-blue-800 font-medium">Notification</p>
+              <p className="text-blue-700">
+                Vous avez {stats.demandes_en_cours} demande(s) en attente de traitement
+              </p>
+            </div>
+          )}
+        </main>
+      </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Évaluations</CardTitle>
-              <CardDescription>Consulter les évaluations des stagiaires</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" onClick={() => router.push("/rh/evaluations")}>
-                <ClipboardList className="mr-2 h-4 w-4" />
-                Voir les évaluations
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+      <Footer />
     </div>
   )
 }
